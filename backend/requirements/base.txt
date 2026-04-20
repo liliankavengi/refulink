@@ -1,0 +1,7 @@
+django>=4.2
+psycopg2-binary
+requests
+python-dotenv
+djangorestframework
+django-cors-headers
+dj-database-url
