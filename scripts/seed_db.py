@@ -30,10 +30,12 @@ def seed():
 
     for alien in mock_aliens:
         hashed = hashlib.sha256(alien['identifier'].encode()).hexdigest()
+        name_parts = alien['name'].split(' ', 1)
         obj, created = AlienID.objects.get_or_create(
             id_number=alien['id_number'],
             defaults={
-                'full_name': alien['name'],
+                'first_name': name_parts[0],
+                'last_name': name_parts[1] if len(name_parts) > 1 else '',
                 'hashed_rin': hashed,
                 'is_active': True
             }
