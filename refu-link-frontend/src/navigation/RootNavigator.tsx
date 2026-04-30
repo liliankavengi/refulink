@@ -4,18 +4,52 @@ import SplashScreen from "../screens/SplashScreen";
 import IdentificationScreen from "../screens/IdentificationScreen";
 import BiometricScreen from "../screens/BiometricScreen";
 import ChangePinScreen from "../screens/ChangePinScreen";
-import DashboardScreen from "../screens/DashboardScreen";
+import LoginScreen from "../screens/LoginScreen";
+import OnboardingScreen from "../screens/OnboardingScreen";
+import DepositOptionsScreen from "../screens/DepositScreen";
+import MainTabNavigator from "./MainTabNavigator";
+import EditProfileScreen from "../screens/EditProfileScreen";
+import SecuritySettingsScreen from "../screens/SecuritySettingScreen";
+import LanguageSettingsScreen from "../screens/LanguageSettingScreen";
+import HelpSupportScreen from "../screens/HelpScreen";
+import SendMoneyScreen from "../screens/SendMoneyScreen";
+import SendConfirmScreen from "../screens/SendConfirmScreen";
+import SendSuccessScreen from "../screens/SendSuccessScreen";
+import AgentDepositScreen from "../screens/AgentDepositScreen";
+import AidDepositScreen from "../screens/AidDepositScreen";
+import MpesaDepositScreen from "../screens/MpesaDepositScreen";
+import VaultScreen from "../screens/VaultScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Splash" component={SplashScreen} />
+      <Stack.Screen 
+        name="Splash" 
+        component={SplashScreen} 
+      />
+      <Stack.Screen 
+        name="Onboarding" 
+        component={OnboardingScreen} 
+      />
       <Stack.Screen name="Identification" component={IdentificationScreen} />
       <Stack.Screen name="Biometric" component={BiometricScreen} />
       <Stack.Screen name="ChangePin" component={ChangePinScreen} />
-      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="DepositOptions" component={DepositOptionsScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="Security" component={SecuritySettingsScreen} />
+      <Stack.Screen name="Language" component={LanguageSettingsScreen} />
+      <Stack.Screen name="Help" component={HelpSupportScreen} />
+      <Stack.Screen name="Send" component={SendMoneyScreen} />
+      <Stack.Screen name="SendConfirm" component={SendConfirmScreen} />
+      <Stack.Screen name="SendSuccess" component={SendSuccessScreen} />
+      <Stack.Screen name="AgentDeposit" component={AgentDepositScreen} />
+      <Stack.Screen name="AidDeposit" component={AidDepositScreen} />
+      <Stack.Screen name="MpesaDeposit" component={MpesaDepositScreen} />
+      <Stack.Screen name="Vault" component={VaultScreen} />
     </Stack.Navigator>
   );
 }
