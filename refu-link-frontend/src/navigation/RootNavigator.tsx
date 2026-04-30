@@ -19,6 +19,9 @@ import AgentDepositScreen from "../screens/AgentDepositScreen";
 import AidDepositScreen from "../screens/AidDepositScreen";
 import MpesaDepositScreen from "../screens/MpesaDepositScreen";
 import VaultScreen from "../screens/VaultScreen";
+import RequestLoanScreen from "../screens/RequestLoanScreen";
+import LoanSuccessScreen from "../screens/LoanSuccessScreen";
+import TransactionDetailScreen from "../screens/TransactionDetailScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -50,6 +53,9 @@ export default function RootNavigator() {
       <Stack.Screen name="AidDeposit" component={AidDepositScreen} />
       <Stack.Screen name="MpesaDeposit" component={MpesaDepositScreen} />
       <Stack.Screen name="Vault" component={VaultScreen} />
+      <Stack.Screen name="RequestLoan" component={RequestLoanScreen} />
+      <Stack.Screen name="LoanSuccess" component={LoanSuccessScreen} />
+      <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
     </Stack.Navigator>
   );
 }
