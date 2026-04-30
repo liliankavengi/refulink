@@ -723,13 +723,13 @@ const styles = StyleSheet.create({
   },
   vaultSub: {
     color: ORANGE,
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: "600",
   },
   vaultRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 4,
   },
   vaultBadge: {
     backgroundColor: ORANGE,
