@@ -103,7 +103,7 @@ export default function SplashScreen() {
           useNativeDriver: true,
         }),
       ]),
-    ]).start();
+    ]).start(); 
 
     // Typewriter effect
     let currentIndex = 0;
@@ -133,7 +133,7 @@ export default function SplashScreen() {
       } else {
         navigation.replace("Onboarding");
       }
-    }, 6000);
+    }, 50000);
 
     return () => {
       clearInterval(typewriterInterval);
@@ -227,7 +227,7 @@ export default function SplashScreen() {
                 
                 {/* Wallet body */}
                 <Path
-                  d="M35 50H75C80 50 85 55 85 60V75C85 80 80 85 75 85H35C30 85 25 80 25 75V60C25 55 30 50 35 50Z"
+                  d="M40 40H80C85 40 90 45 90 50V63C90 70 85 75 80 75H40C35 75 30 70 30 65V50C30 45 35 40 40 40Z"
                   stroke="url(#splashGradient)"
                   strokeWidth="3"
                   strokeLinecap="round"
@@ -236,16 +236,16 @@ export default function SplashScreen() {
                 
                 {/* Wallet detail */}
                 <Path
-                  d="M70 65H80"
+                  d="M75 55H85"
                   stroke="url(#splashGradient)"
                   strokeWidth="3"
                   strokeLinecap="round"
                 />
                 
                 {/* Corner accents */}
-                <Circle cx="35" cy="55" r="2" fill={ORANGE_LIGHT} opacity="0.8" />
-                <Circle cx="75" cy="55" r="2" fill={ORANGE_LIGHT} opacity="0.8" />
-                <Circle cx="75" cy="80" r="2" fill={ORANGE_LIGHT} opacity="0.8" />
+                <Circle cx="40" cy="45" r="2" fill={ORANGE_LIGHT} opacity="0.8" />
+                <Circle cx="80" cy="45" r="2" fill={ORANGE_LIGHT} opacity="0.8" />
+                <Circle cx="80" cy="70" r="2" fill={ORANGE_LIGHT} opacity="0.8" />
               </Svg>
             </View>
           </Animated.View>
@@ -327,22 +327,22 @@ const styles = StyleSheet.create({
   particle1: {
     width: 200,
     height: 200,
-    top: '10%',
+    top: '5%',
     right: -50,
     opacity: 0.08,
   },
   particle2: {
     width: 150,
     height: 150,
-    bottom: '20%',
-    left: -30,
+    bottom: '10%',
+    left: -60,
     opacity: 0.06,
   },
   particle3: {
     width: 100,
     height: 100,
     top: '50%',
-    right: '20%',
+    right: '5%',
     opacity: 0.04,
   },
   inner: {

@@ -136,22 +136,22 @@ export default function OnboardingScreen() {
                 
                 {/* Wallet body */}
                 <Path
-                  d="M35 50H75C80 50 85 55 85 60V75C85 80 80 85 75 85H35C30 85 25 80 25 75V60C25 55 30 50 35 50Z"
+                  d="M40 40H80C85 40 90 45 90 50V63C90 70 85 75 80 75H40C35 75 30 70 30 65V50C30 45 35 40 40 40Z"
                   stroke="url(#logoGradient)"
                   strokeWidth="3"
                 />
                 
                 {/* Wallet detail line */}
                 <Path
-                  d="M70 65H80"
+                  d="M75 55H85"
                   stroke="url(#logoGradient)"
                   strokeWidth="3"
                   strokeLinecap="round"
                 />
                 
                 {/* Decorative dots */}
-                <Circle cx="40" cy="60" r="2" fill={ORANGE_LIGHT} opacity="0.6" />
-                <Circle cx="80" cy="60" r="2" fill={ORANGE_LIGHT} opacity="0.6" />
+                <Circle cx="40" cy="46" r="2" fill={ORANGE_LIGHT} opacity="0.8" />
+                <Circle cx="80" cy="46" r="2" fill={ORANGE_LIGHT} opacity="0.8" />
               </Svg>
             </View>
           </View>
