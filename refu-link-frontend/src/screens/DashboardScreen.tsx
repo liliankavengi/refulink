@@ -375,7 +375,6 @@ export default function DashboardScreen() {
                 end={{ x: 1, y: 1 }}
                 style={styles.actionGradient}
               >
-                <Text style={styles.actionIcon}>↓</Text>
                 <Text style={styles.actionText}>Deposit</Text>
               </ExpoLinearGradient>
             </Pressable>
@@ -388,7 +387,6 @@ export default function DashboardScreen() {
               ]}
             >
               <View style={styles.actionSend}>
-                <Text style={styles.actionSendIcon}>↑</Text>
                 <Text style={styles.actionSendText}>Send</Text>
               </View>
             </Pressable>
@@ -551,7 +549,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 24,
-    gap: 20,
+    gap: 24,
   },
   // Balance Card
   balanceCard: {
@@ -562,6 +560,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 24,
     elevation: 10,
+    top: 10,
   },
   balanceCardGradient: {
     padding: 24,
@@ -763,39 +762,29 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
   },
   actionGradient: {
-    paddingVertical: 24,
+    paddingVertical: 18,
     alignItems: 'center',
-    gap: 8,
-  },
-  actionIcon: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: "300",
+    gap: 6,
   },
   actionText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: "800",
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
   actionSend: {
-    paddingVertical: 24,
+    paddingVertical: 16,
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     backgroundColor: CARD_BG,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#2A2A3E',
   },
-  actionSendIcon: {
-    color: ORANGE,
-    fontSize: 24,
-    fontWeight: "300",
-  },
   actionSendText: {
     color: ORANGE,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: "800",
     letterSpacing: 2,
     textTransform: 'uppercase',

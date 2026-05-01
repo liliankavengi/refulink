@@ -210,7 +210,7 @@ export default function ProfileScreen() {
     // Clear any stored session data here
     navigation.reset({
       index: 0,
-      routes: [{ name: "Splash" }],
+      routes: [{ name: "Login" }],
     });
   };
 

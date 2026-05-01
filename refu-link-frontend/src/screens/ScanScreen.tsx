@@ -13,10 +13,10 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Circle, Line, Rect, Polyline } from "react-native-svg";
+import { CameraView, useCameraPermissions } from "expo-camera";
 
 const { width, height } = Dimensions.get('window');
 const ORANGE = "#FF5722";
-const ORANGE_LIGHT = "#FF8A65";
 const ORANGE_DARK = "#E64A19";
 const DARK_BG = "#1A1A2E";
 const CARD_BG = "#16213E";
@@ -83,15 +83,23 @@ export default function ScanToPayScreen() {
   const [showSuccess, setShowSuccess] = useState(false);
   const navigation = useNavigation<any>();
 
+  // New State
+  const [flashlightOn, setFlashlightOn] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+
+
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const framePulse = useRef(new Animated.Value(1)).current;
-  const scanLinePosition = useRef(new Animated.Value(0)).current;
+  const scanLineAnim = useRef(new Animated.Value(-100)).current;
   const confirmationScale = useRef(new Animated.Value(0.8)).current;
   const confirmationOpacity = useRef(new Animated.Value(0)).current;
   const successScale = useRef(new Animated.Value(0)).current;
   const successOpacity = useRef(new Animated.Value(0)).current;
   const rippleAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    requestPermission();
+  }, []);
 
   useEffect(() => {
     // Entrance animation
@@ -101,41 +109,24 @@ export default function ScanToPayScreen() {
       tension: 40,
       useNativeDriver: true,
     }).start();
+  }, []);
 
-    // Continuous frame pulse
-    if (!scanned) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(framePulse, {
-            toValue: 1.05,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(framePulse, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-
-      // Scan line animation
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(scanLinePosition, {
-            toValue: 1,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scanLinePosition, {
-            toValue: 0,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    }
-  }, [scanned]);
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scanLineAnim, {
+          toValue: 100,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scanLineAnim, {
+          toValue: -100,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   useEffect(() => {
     if (showConfirmation) {
@@ -192,13 +183,6 @@ export default function ScanToPayScreen() {
     }
   }, [showSuccess]);
 
-  const handleScan = () => {
-    setScanned(true);
-    setTimeout(() => {
-      setShowConfirmation(true);
-    }, 500);
-  };
-
   const handleConfirm = () => {
     setShowConfirmation(false);
     setShowSuccess(true);
@@ -211,11 +195,6 @@ export default function ScanToPayScreen() {
     navigation.goBack();
   };
 
-  const scanLineTranslateY = scanLinePosition.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-100, 100],
-  });
-
   const rippleScale = rippleAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0.8, 2],
@@ -225,6 +204,26 @@ export default function ScanToPayScreen() {
     inputRange: [0, 0.5, 1],
     outputRange: [0.4, 0.2, 0],
   });
+
+  if (!permission) {
+    return <View style={styles.container} />;
+  }
+
+  if (!permission.granted) {
+    return (
+      <View style={styles.container}>
+        <ExpoLinearGradient colors={[DARK_BG, '#16213E']} style={styles.background} />
+        <SafeAreaView style={[styles.safeArea, { alignItems: 'center', justifyContent: 'center', gap: 20 }]}>
+          <Text style={{ color: '#FFF', fontSize: 16, textAlign: 'center', paddingHorizontal: 32 }}>
+            Camera access is required to scan QR codes
+          </Text>
+          <Pressable onPress={requestPermission} style={{ backgroundColor: ORANGE, padding: 16, borderRadius: 12 }}>
+            <Text style={{ color: '#FFF', fontWeight: '700' }}>Grant Permission</Text>
+          </Pressable>
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -253,6 +252,22 @@ export default function ScanToPayScreen() {
 
         {/* Camera Viewfinder */}
         <View style={styles.viewfinder}>
+          {/* Live Camera Feed */}
+          {permission?.granted && !scanned && (
+            <CameraView
+              style={StyleSheet.absoluteFillObject}
+              facing="back"
+              barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+              onBarcodeScanned={() => {
+                if (!scanned) {
+                  setScanned(true);
+                  setTimeout(() => setShowConfirmation(true), 500);
+                }
+              }}
+              enableTorch={flashlightOn}
+            />
+          )}
+
           {/* Dark overlay */}
           <View style={styles.overlay}>
             {/* Top section */}
@@ -265,17 +280,13 @@ export default function ScanToPayScreen() {
                 </View>
               )}
             </View>
-            
+
             {/* Middle section with frame */}
             <View style={styles.overlayMiddle}>
               <View style={styles.overlaySide} />
-              
+
               {/* Scanning Frame */}
-              <Animated.View style={[
-                styles.scanFrame,
-                { transform: [{ scale: framePulse }] }
-              ]}>
-                {/* Frame border with corners */}
+              <View style={styles.scanFrame}>
                 <View style={styles.frameContent}>
                   {/* Corner accents */}
                   <View style={[styles.corner, styles.cornerTL]} />
@@ -287,7 +298,7 @@ export default function ScanToPayScreen() {
                   {!scanned && (
                     <Animated.View style={[
                       styles.scanLine,
-                      { transform: [{ translateY: scanLineTranslateY }] }
+                      { transform: [{ translateY: scanLineAnim }] }
                     ]} />
                   )}
 
@@ -298,11 +309,11 @@ export default function ScanToPayScreen() {
                     </View>
                   )}
                 </View>
-              </Animated.View>
+              </View>
 
               <View style={styles.overlaySide} />
             </View>
-            
+
             {/* Bottom section */}
             <View style={styles.overlayBottom} />
           </View>
@@ -310,8 +321,11 @@ export default function ScanToPayScreen() {
           {/* Flashlight toggle */}
           {!scanned && (
             <View style={styles.flashlightContainer}>
-              <Pressable style={styles.flashlightButton}>
-                <IconFlashlight size={20} />
+              <Pressable 
+                style={styles.flashlightButton}
+                onPress={() => setFlashlightOn(prev => !prev)}
+              >
+                <IconFlashlight size={20} color={flashlightOn ? ORANGE : "#666"} />
               </Pressable>
             </View>
           )}
@@ -320,27 +334,17 @@ export default function ScanToPayScreen() {
           {scanned && !showConfirmation && (
             <Animated.View style={[
               styles.merchantCard,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: scanLinePosition.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [30, 0],
-                }) }]
-              }
+              { opacity: fadeAnim }
             ]}>
               <View style={styles.merchantContent}>
                 <ExpoLinearGradient
                   colors={[CARD_BG, '#1E2A4A']}
                   style={styles.merchantGradient}
                 >
-                  <Text style={styles.merchantTitle}>
-                    Mama Amina Kiosk
-                  </Text>
+                  <Text style={styles.merchantTitle}>Mama Amina Kiosk</Text>
                   <View style={styles.merchantVerified}>
                     <IconCheckCircleSmall color={GREEN} size={14} />
-                    <Text style={styles.merchantVerifiedText}>
-                      Verified Merchant
-                    </Text>
+                    <Text style={styles.merchantVerifiedText}>Verified Merchant</Text>
                   </View>
                   <View style={styles.merchantAmount}>
                     <Text style={styles.amountLabel}>Amount</Text>
@@ -351,32 +355,6 @@ export default function ScanToPayScreen() {
             </Animated.View>
           )}
         </View>
-
-        {/* Scan Button */}
-        {!scanned && (
-          <Animated.View style={[
-            styles.scanButtonContainer,
-            { opacity: fadeAnim }
-          ]}>
-            <Pressable
-              onPress={handleScan}
-              style={({ pressed }) => [
-                styles.scanButtonWrapper,
-                pressed && styles.scanButtonPressed,
-              ]}
-            >
-              <ExpoLinearGradient
-                colors={[ORANGE, ORANGE_DARK]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.scanButton}
-              >
-                <IconScanLine color="#FFFFFF" size={20} />
-                <Text style={styles.scanButtonText}>Scan QR Code</Text>
-              </ExpoLinearGradient>
-            </Pressable>
-          </Animated.View>
-        )}
 
         {/* Confirmation Modal */}
         <Modal
@@ -565,15 +543,15 @@ const styles = StyleSheet.create({
   },
   overlayMiddle: {
     flexDirection: 'row',
-    height: 280,
+    height: 250,
   },
   overlaySide: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   scanFrame: {
-    width: 280,
-    height: 280,
+    width: 200,
+    height: 200,
   },
   frameContent: {
     flex: 1,
@@ -719,43 +697,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 28,
     fontWeight: "800",
-  },
-  // Scan Button
-  scanButtonContainer: {
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-    backgroundColor: '#000000',
-    borderTopWidth: 1,
-    borderTopColor: '#1A1A1A',
-  },
-  scanButtonWrapper: {
-    width: '100%',
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: ORANGE,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  scanButton: {
-    paddingVertical: 18,
-    paddingHorizontal: 32,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  scanButtonPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.98 }],
-  },
-  scanButtonText: {
-    color: '#FFFFFF',
-    fontWeight: "800",
-    fontSize: 16,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
   },
   // Modal
   modalOverlay: {

@@ -416,10 +416,7 @@ export default function LoginScreen() {
 
               {/* Verifying State */}
               {verifying && (
-                <View style={styles.verifyingCard}>
-                  <View style={styles.verifyingDot} />
-                  <Text style={styles.verifyingText}>Verifying...</Text>
-                </View>
+                <Text style={styles.verifyingText}>Verifying...</Text>
               )}
 
               {/* Number Pad */}
@@ -569,7 +566,7 @@ const styles = StyleSheet.create({
   // Main Section
   mainSection: {
     alignItems: 'center',
-    gap: 24,
+    gap: 15,
   },
   // Biometric
   biometricContainer: {
@@ -641,26 +638,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   // Verifying
-  verifyingCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: CARD_BG,
-    borderRadius: 14,
-    padding: 14,
-    width: '100%',
-    justifyContent: 'center',
-  },
-  verifyingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: ORANGE,
-  },
   verifyingText: {
     color: ORANGE,
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: "600",
+    textAlign: 'center',
   },
   // Number Pad
   numpad: {
