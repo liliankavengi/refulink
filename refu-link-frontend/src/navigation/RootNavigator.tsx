@@ -35,11 +35,8 @@ export default function RootNavigator() {
       screenOptions={{ 
         headerShown: false,
         
-        // ✅ This is the correct way for native-stack
-        animation: 'fade_from_bottom',     // Best for Send Money
-        animationDuration: 400,             // Controls speed (ms)
-        // animationTypeForReplace: 'pop',     // Better for back navigation
-
+        animation: 'fade_from_bottom',
+        animationDuration: 400,         
       }}
     >
       <Stack.Screen 

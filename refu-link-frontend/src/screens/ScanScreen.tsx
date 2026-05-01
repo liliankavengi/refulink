@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
   },
   scanFrame: {
     width: 200,
-    height: 200,
+    height: 250,
   },
   frameContent: {
     flex: 1,
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
   // Flashlight
   flashlightContainer: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 100,
     alignSelf: 'center',
   },
   flashlightButton: {
