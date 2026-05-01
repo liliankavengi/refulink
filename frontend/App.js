@@ -1,13 +1,17 @@
 import "./global.css";
-import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { LanguageProvider } from "./src/context/LanguageContext";
 import RootNavigator from "./src/navigation/RootNavigator";
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <StatusBar style="dark" />
-      <RootNavigator />
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <LanguageProvider>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </LanguageProvider>
+    </SafeAreaProvider>
   );
 }

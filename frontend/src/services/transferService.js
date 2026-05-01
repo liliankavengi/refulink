@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../utils/storage";
 
 import api from "./api";
 
@@ -25,16 +25,16 @@ export const sendToken = async (destinationAddress, amountKes) => {
   if (typeof destinationAddress !== "string" || !destinationAddress.startsWith("G") || destinationAddress.length !== 56) {
     throw new Error("Invalid Stellar address. Must be a 56-character G... key.");
   }
-  if (parseFloat(amountKes) <= 0) {
+  if (Number.parseFloat(amountKes) <= 0) {
     throw new Error("Amount must be greater than zero.");
   }
 
-  const token = await AsyncStorage.getItem("access_token");
+  const token = await storage.getItem("access_token");
   if (!token) throw new Error("Not authenticated. Please log in.");
 
   const { data } = await api.post("/wallet/send/", {
     destination_address: destinationAddress,
-    amount_kes: parseFloat(amountKes),
+    amount_kes: Number.parseFloat(amountKes),
   });
 
   return {

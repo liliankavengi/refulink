@@ -1,5 +1,5 @@
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../utils/storage";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:8000/api";
 
@@ -11,7 +11,7 @@ const api = axios.create({
 
 // Attach JWT access token to every request
 api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem("access_token");
+  const token = await storage.getItem("access_token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -26,18 +26,18 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
       try {
-        const refresh = await AsyncStorage.getItem("refresh_token");
+        const refresh = await storage.getItem("refresh_token");
         const { data } = await axios.post(`${BASE_URL}/auth/token/refresh/`, {
           refresh,
         });
-        await AsyncStorage.setItem("access_token", data.access);
+        await storage.setItem("access_token", data.access);
         original.headers.Authorization = `Bearer ${data.access}`;
         return api(original);
       } catch {
-        await AsyncStorage.multiRemove(["access_token", "refresh_token"]);
+        await storage.multiRemove(["access_token", "refresh_token"]);
       }
     }
-    return Promise.reject(error);
+    throw error;
   }
 );
 
