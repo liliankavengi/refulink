@@ -41,20 +41,18 @@ export default function SplashScreen() {
 
   useEffect(() => {
     // Continuous glow pulse
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseGlow, {
-          toValue: 1.5,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseGlow, {
-          toValue: 1,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    Animated.sequence([
+    Animated.timing(pulseGlow, {
+      toValue: 1.5,
+      duration: 2000,
+      useNativeDriver: true,
+    }),
+    Animated.timing(pulseGlow, {
+      toValue: 1,
+      duration: 2000,
+      useNativeDriver: true,
+    }),
+  ]).start();
 
     // Logo entrance
     Animated.sequence([
@@ -133,7 +131,7 @@ export default function SplashScreen() {
       } else {
         navigation.replace("Onboarding");
       }
-    }, 50000);
+    }, 6500);
 
     return () => {
       clearInterval(typewriterInterval);

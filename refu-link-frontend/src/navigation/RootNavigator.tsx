@@ -31,7 +31,17 @@ const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        
+        // ✅ This is the correct way for native-stack
+        animation: 'fade_from_bottom',     // Best for Send Money
+        animationDuration: 400,             // Controls speed (ms)
+        // animationTypeForReplace: 'pop',     // Better for back navigation
+
+      }}
+    >
       <Stack.Screen 
         name="Splash" 
         component={SplashScreen} 
@@ -50,7 +60,11 @@ export default function RootNavigator() {
       <Stack.Screen name="Security" component={SecuritySettingsScreen} />
       <Stack.Screen name="Language" component={LanguageSettingsScreen} />
       <Stack.Screen name="Help" component={HelpSupportScreen} />
-      <Stack.Screen name="Send" component={SendMoneyScreen} />
+      <Stack.Screen name="Send" component={SendMoneyScreen} 
+        options={{
+            animation: 'slide_from_bottom'     // You can override per screen
+          }}
+      />
       <Stack.Screen name="SendConfirm" component={SendConfirmScreen} />
       <Stack.Screen name="SendSuccess" component={SendSuccessScreen} />
       <Stack.Screen name="AgentDeposit" component={AgentDepositScreen} />

@@ -495,11 +495,6 @@ const styles = StyleSheet.create({
   },
   optionCardSelected: {
     borderColor: ORANGE,
-    shadowColor: ORANGE,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 6,
   },
   optionCardPressed: {
     borderColor: ORANGE + '60',

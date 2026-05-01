@@ -117,109 +117,45 @@ export default function SendSuccessScreen() {
   });
 
   useEffect(() => {
-    // Staggered animations
-    Animated.sequence([
-      // Initial delay
-      Animated.delay(200),
-      
-      // Checkmark and ripples
-      Animated.parallel([
-        Animated.spring(checkmarkScale, {
-          toValue: 1,
-          friction: 4,
-          tension: 40,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-      ]),
-      
-      // Ripple effects
-      Animated.parallel([
+    // Run ripples independently - don't put in sequence
+    setTimeout(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(rippleAnim1, { toValue: 1, duration: 1500, useNativeDriver: true }),
+          Animated.timing(rippleAnim1, { toValue: 0, duration: 0, useNativeDriver: true }),
+        ])
+      ).start();
+
+      setTimeout(() => {
         Animated.loop(
           Animated.sequence([
-            Animated.timing(rippleAnim1, {
-              toValue: 1,
-              duration: 1500,
-              useNativeDriver: true,
-            }),
-            Animated.timing(rippleAnim1, {
-              toValue: 0,
-              duration: 0,
-              useNativeDriver: true,
-            }),
+            Animated.timing(rippleAnim2, { toValue: 1, duration: 1500, useNativeDriver: true }),
+            Animated.timing(rippleAnim2, { toValue: 0, duration: 0, useNativeDriver: true }),
           ])
-        ),
-        Animated.sequence([
-          Animated.delay(500),
-          Animated.loop(
-            Animated.sequence([
-              Animated.timing(rippleAnim2, {
-                toValue: 1,
-                duration: 1500,
-                useNativeDriver: true,
-              }),
-              Animated.timing(rippleAnim2, {
-                toValue: 0,
-                duration: 0,
-                useNativeDriver: true,
-              }),
-            ])
-          ),
-        ]),
-        Animated.sequence([
-          Animated.delay(1000),
-          Animated.loop(
-            Animated.sequence([
-              Animated.timing(rippleAnim3, {
-                toValue: 1,
-                duration: 1500,
-                useNativeDriver: true,
-              }),
-              Animated.timing(rippleAnim3, {
-                toValue: 0,
-                duration: 0,
-                useNativeDriver: true,
-              }),
-            ])
-          ),
-        ]),
+        ).start();
+      }, 500);
+
+      setTimeout(() => {
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(rippleAnim3, { toValue: 1, duration: 1500, useNativeDriver: true }),
+            Animated.timing(rippleAnim3, { toValue: 0, duration: 0, useNativeDriver: true }),
+          ])
+        ).start();
+      }, 1000);
+    }, 800);
+
+    // Main sequence without ripples
+    Animated.sequence([
+      Animated.delay(200),
+      Animated.parallel([
+        Animated.spring(checkmarkScale, { toValue: 1, friction: 4, tension: 40, useNativeDriver: true }),
+        Animated.timing(opacityAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
       ]),
-      
-      // Content slide up
-      Animated.spring(contentSlide, {
-        toValue: 0,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-      
-      // Scale overall
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 6,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-      
-      // Details section
-      Animated.spring(detailsSlide, {
-        toValue: 0,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-      
-      // Buttons
-      Animated.spring(buttonSlide, {
-        toValue: 0,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
+      Animated.spring(contentSlide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 6, tension: 40, useNativeDriver: true }),
+      Animated.spring(detailsSlide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+      Animated.spring(buttonSlide, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
     ]).start();
   }, []);
 

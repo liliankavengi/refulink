@@ -216,7 +216,7 @@ export default function SendMoneyScreen() {
   };
 
   const handleScanQR = () => {
-    navigation.navigate("ScanToPay");
+    navigation.navigate("MainTabs", { screen: "Scan" });
   };
 
   const isValid = recipient && amount && recipientFound && parseFloat(amount) > 0;
