@@ -1,10 +1,13 @@
 from datetime import date
+from .languages import SUPPORTED_LANGUAGES
 
 try:
     from deep_translator import GoogleTranslator
     _TRANSLATOR_AVAILABLE = True
 except ImportError:
     _TRANSLATOR_AVAILABLE = False
+
+# The master template for the agreement. 
 
 _AGREEMENT_TEMPLATE = """VOUCHING AGREEMENT — RefuLink Programme
 
@@ -23,43 +26,49 @@ Date                  : {date}
 
 I accept full responsibility for the accuracy of this verification."""
 
-_SUPPORTED = {
-    "sw": "Swahili",
-    "so": "Somali",
-}
-
-
 def translate_vouching_agreement(
     ambassador_public_key: str,
     hashed_rin: str,
     signing_date: str = "",
 ) -> dict:
     """
-    Returns the vouching agreement text in English, Swahili, and Somali.
-    Falls back to English for any language where translation fails.
+    Generates the vouching agreement in English and creates translations 
+    for all languages configured in languages.py. 
+    
+    If the translation service is unavailable, it defaults to English for all entries.
     """
+    
+    # If no specific date is provided it defaults to today's date to keep the record current.
     if not signing_date:
         signing_date = date.today().isoformat()
 
-    english = _AGREEMENT_TEMPLATE.format(
+    # English version is created first. It serves as the 'source of truth'.
+    english_text = _AGREEMENT_TEMPLATE.format(
         ambassador_public_key=ambassador_public_key,
         hashed_rin=hashed_rin,
         date=signing_date,
     )
 
-    translations = {"en": english}
+    
+    translations = {"en": english_text}
 
     if not _TRANSLATOR_AVAILABLE:
-        for code in _SUPPORTED:
-            translations[code] = english
+        for code in SUPPORTED_LANGUAGES:
+            translations[code] = english_text
         return translations
 
-    for lang_code in _SUPPORTED:
+    for lang_code in SUPPORTED_LANGUAGES:
+        if lang_code == "en":
+            continue
+            
         try:
-            # deep-translator handles chunking internally for long texts
-            translated = GoogleTranslator(source="en", target=lang_code).translate(english)
-            translations[lang_code] = translated or english
+            
+            #translate the English text into the target language code.
+
+            translated = GoogleTranslator(source="en", target=lang_code).translate(english_text)
+            translations[lang_code] = translated or english_text
         except Exception:
-            translations[lang_code] = english
+            # If the translation fails, fallback to English so the user still sees a valid agreement.
+            translations[lang_code] = english_text
 
     return translations
