@@ -4,7 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { LanguageProvider } from "./src/context/LanguageContext";
 import RootNavigator from "./src/navigation/RootNavigator";
 
-export default function App() {
+export default function App(): JSX.Element {
   return (
     <SafeAreaProvider>
       <LanguageProvider>

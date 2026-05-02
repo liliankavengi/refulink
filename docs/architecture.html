@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RefuLink — System Architecture</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #050505;
+      color: #e4e4e7;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #1c1c1c;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 900;
+      color: #FF6600;
+      letter-spacing: 4px;
+    }
+
+    header h1 {
+      font-size: 14px;
+      font-weight: 400;
+      color: #71717a;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .legend {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+      padding: 14px 20px;
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #a1a1aa;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .dot-orange  { background: #FF6600; }
+    .dot-blue    { background: #3B82F6; }
+    .dot-green   { background: #22C55E; }
+    .dot-purple  { background: #A855F7; }
+    .dot-gray    { background: #3F3F46; border: 1px solid #52525b; }
+    .dot-dashed  { background: transparent; border: 2px dashed #52525b; }
+
+    .diagram-wrapper {
+      background: #0a0a0a;
+      border: 1px solid #1f1f1f;
+      border-radius: 16px;
+      padding: 32px 20px;
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Mermaid dark overrides */
+    .mermaid svg {
+      max-width: 100%;
+    }
+
+    .flow-table {
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .flow-card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+
+    .flow-card h3 {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #FF6600;
+      margin-bottom: 12px;
+    }
+
+    .flow-step {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 8px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #1f1f1f;
+      border: 1px solid #3f3f46;
+      font-size: 10px;
+      font-weight: 700;
+      color: #FF6600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-text {
+      font-size: 12px;
+      color: #a1a1aa;
+      line-height: 1.6;
+    }
+
+    .step-text strong { color: #e4e4e7; }
+
+    .chain-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .on-chain  { background: #FF660022; color: #FF6600; border: 1px solid #FF660044; }
+    .off-chain { background: #3B82F622; color: #60A5FA; border: 1px solid #3B82F644; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="logo">RefuLink</span>
+    <h1>System Architecture — Technical Overview</h1>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><div class="dot dot-orange"></div> Data flow / API call</div>
+    <div class="legend-item"><div class="dot dot-blue"></div> Frontend (React Native)</div>
+    <div class="legend-item"><div class="dot dot-green"></div> On-Chain (Stellar / Soroban)</div>
+    <div class="legend-item"><div class="dot dot-purple"></div> M-Pesa / Daraja</div>
+    <div class="legend-item"><div class="dot dot-gray"></div> Backend (Django DRF)</div>
+    <div class="legend-item"><div class="dot dot-dashed"></div> Offline / dev-mode path</div>
+  </div>
+
+  <div class="diagram-wrapper">
+    <div class="mermaid">
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "background":           "#0a0a0a",
+    "primaryColor":         "#1a1a1a",
+    "primaryTextColor":     "#e4e4e7",
+    "primaryBorderColor":   "#3f3f46",
+    "lineColor":            "#FF6600",
+    "secondaryColor":       "#111827",
+    "tertiaryColor":        "#0f172a",
+    "edgeLabelBackground":  "#0a0a0a",
+    "clusterBkg":           "#0f0f0f",
+    "clusterBorder":        "#27272a",
+    "fontFamily":           "Segoe UI, system-ui, sans-serif",
+    "fontSize":             "13px",
+    "nodeBorder":           "#3f3f46",
+    "titleColor":           "#FF6600"
+  }
+}}%%
+
+flowchart TB
+
+  %% ══════════════════════════════════════════
+  %% FRONTEND
+  %% ══════════════════════════════════════════
+  subgraph FE["📱  FRONTEND — React Native / Expo SDK 55"]
+    direction TB
+    LANG["🌍 Multilingual UI\nLanguageContext\nEN · SW · SO · AR"]
+    BIO["🔐 Biometric / PIN\nexpo-local-authentication\nFace ID · Fingerprint"]
+    QR["⊡ QR Scanner\nexpo-camera\nMerchant / Ambassador"]
+    WALLET_UI["💰 Wallet Dashboard\nKES Balance\nTx History · Send · Receive"]
+    VERIFY_UI["✅ Identity Vault\nRIN Input\nVerification Badge"]
+    BORROW_UI["📊 Borrow Screen\nTrust Score Ring\nLoan Slider"]
+  end
+
+  %% ══════════════════════════════════════════
+  %% BACKEND
+  %% ══════════════════════════════════════════
+  subgraph BE["⚙️  BACKEND — Django REST Framework"]
+    direction TB
+    JWT["🔑 JWT Auth\nsimplejwt\nAccess · Refresh tokens"]
+    subgraph IDENTITY_SVC["Identity Layer"]
+      RIN_HASH["SHA-256\nRIN Hasher"]
+      IPRS["Mock IPRS\nAlienID DB\n(PostgreSQL)"]
+      REG["RefugeeIdentity\nstellar_public_key\nhashed_rin"]
+    end
+    subgraph WALLET_SVC["Wallet Layer"]
+      BAL["Balance API\nGET /wallet/balance/"]
+      SEND["Send API\nPOST /wallet/send/"]
+      AUDIT["Audit Log\nPOST /wallet/audit/"]
+    end
+    subgraph TRUST_SVC["Trust & Credit Layer"]
+      ENGINE["Trust Score Engine\nVouches · Volume · Age"]
+      LOAN["Loan API\nPOST /trust/loan/"]
+    end
+    subgraph MPESA_SVC["M-Pesa Layer"]
+      C2B_VIEW["C2B Webhook\nPOST /mpesa/c2b/"]
+      WITHDRAW_VIEW["Withdraw API\nPOST /mpesa/withdraw/"]
+      DEP_INFO["Deposit Info\nGET /mpesa/deposit-info/"]
+    end
+    AI_MW["🤖 AI Translation\ndeep-translator\nSW · SO · AR"]
+    HORIZON_CLIENT["🌐 Horizon Client\npy-stellar-sdk\nBalance · Payments"]
+    SOROBAN_CLIENT["📜 Soroban Client\npy-stellar-sdk\nInvoke contract fn()"]
+  end
+
+  %% ══════════════════════════════════════════
+  %% POSTGRESQL VAULT
+  %% ══════════════════════════════════════════
+  subgraph DB["🗄️  POSTGRESQL VAULT  —  Off-Chain PII"]
+    direction LR
+    PII_DB[("AlienID\nFull PII\nEncrypted")]
+    IDENTITY_DB[("RefugeeIdentity\npublic_key\nhashed_rin")]
+    TX_DB[("TransactionLog\nAudit trail")]
+    LOAN_DB[("LoanRequest\nCredit history")]
+    MPESA_DB[("MpesaTransaction\nDeposit / Withdrawal")]
+  end
+
+  %% ══════════════════════════════════════════
+  %% M-PESA / DARAJA
+  %% ══════════════════════════════════════════
+  subgraph DARAJA["📲  M-PESA / DARAJA API  —  Off-Chain"]
+    direction TB
+    C2B_HOOK["C2B Paybill\nCustomer → Business\nWebhook push"]
+    B2C_PAY["B2C Payment\nBusiness → Customer\nWithdrawal payout"]
+    SAFARICOM[("Safaricom\nNetwork")]
+  end
+
+  %% ══════════════════════════════════════════
+  %% STELLAR / SOROBAN (ON-CHAIN)
+  %% ══════════════════════════════════════════
+  subgraph STELLAR["⛓️  STELLAR NETWORK  —  On-Chain"]
+    direction TB
+    subgraph SOROBAN_CONTRACT["Soroban Smart Contract  (Rust)"]
+      SC_REGISTER["register_identity()\nhashed_rin · verified=false"]
+      SC_VOUCH["vouch()\nambassador → refugee"]
+      SC_VERIFY["set_verified()\nflip verified flag"]
+      SC_QUERY["is_verified()\nget_identity()"]
+    end
+    subgraph KES_LAYER["KES Token Layer"]
+      KES_ASSET["🪙 KES Stellar Asset\nIssuer: ClickPesa\nGDAS5...VMQFPVK"]
+      SEP24_ANCHOR["🔗 SEP-24 Anchor\nClickPesa\nMint · Burn"]
+      HORIZON_NET["🌐 Stellar Horizon\nTestnet\nPayment ops · Ledger"]
+    end
+  end
+
+  %% ══════════════════════════════════════════
+  %% DATA FLOWS
+  %% ══════════════════════════════════════════
+
+  %% Frontend → Backend API
+  VERIFY_UI  -->|"POST /identity/verify-rin/"| JWT
+  WALLET_UI  -->|"GET /wallet/balance/"| BAL
+  WALLET_UI  -->|"POST /wallet/send/"| SEND
+  BORROW_UI  -->|"GET /trust/score/"| ENGINE
+  BORROW_UI  -->|"POST /trust/loan/"| LOAN
+  QR         -->|"POST /identity/request-vouch/"| JWT
+  WALLET_UI  -->|"GET /mpesa/deposit-info/"| DEP_INFO
+  WALLET_UI  -->|"POST /mpesa/withdraw/"| WITHDRAW_VIEW
+
+  %% Biometric gate (dashed = local, no network)
+  BIO        -.->|"Unlocks local\nStellar private key"| WALLET_UI
+
+  %% AI Translation feeds Language layer
+  AI_MW      -.->|"Translated strings"| LANG
+
+  %% JWT → Identity
+  JWT --> RIN_HASH
+  RIN_HASH -->|"SHA-256 digest"| IPRS
+  IPRS --> PII_DB
+  RIN_HASH --> REG
+  REG --> IDENTITY_DB
+
+  %% Identity → Soroban
+  REG -->|"register_identity()"| SOROBAN_CLIENT
+  SOROBAN_CLIENT --> SC_REGISTER
+  SOROBAN_CLIENT --> SC_VOUCH
+  SOROBAN_CLIENT --> SC_VERIFY
+
+  %% Wallet → Horizon
+  BAL --> HORIZON_CLIENT
+  SEND --> HORIZON_CLIENT
+  HORIZON_CLIENT --> HORIZON_NET
+  SEND --> TX_DB
+
+  %% Trust engine reads on-chain vouches
+  ENGINE -->|"reads vouch count"| SC_QUERY
+  ENGINE --> LOAN_DB
+
+  %% M-Pesa deposit flow (Mint)
+  C2B_HOOK -->|"Daraja webhook"| C2B_VIEW
+  C2B_VIEW -->|"mint_tokens_for_deposit()"| HORIZON_CLIENT
+  HORIZON_CLIENT -->|"Payment op → KES Asset"| KES_ASSET
+  KES_ASSET --> SEP24_ANCHOR
+  C2B_VIEW --> MPESA_DB
+
+  %% M-Pesa withdrawal flow (Burn)
+  WITHDRAW_VIEW -->|"burn_tokens_for_withdrawal()"| HORIZON_CLIENT
+  HORIZON_CLIENT -->|"Payment → Issuer"| SEP24_ANCHOR
+  SEP24_ANCHOR -->|"Release KES"| B2C_PAY
+  B2C_PAY --> SAFARICOM
+  WITHDRAW_VIEW --> MPESA_DB
+
+  %% Daraja ↔ Safaricom
+  SAFARICOM --> C2B_HOOK
+
+  %% Horizon ↔ Stellar network
+  SEP24_ANCHOR <--> HORIZON_NET
+    </div>
+  </div>
+
+  <!-- ── Flow narratives ──────────────────────────────────── -->
+  <div class="flow-table">
+
+    <div class="flow-card">
+      <h3>🔐 Identity Loop</h3>
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div class="step-text">User enters <strong>Alien ID (RIN)</strong> in the Identity Vault screen.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-text">Django <strong>SHA-256 hashes</strong> the RIN and checks it against the IPRS mock DB. <span class="chain-badge off-chain">Off-Chain</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-text">Backend issues a <strong>JWT token</strong> and creates a <code>RefugeeIdentity</code> with a generated Stellar keypair.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div class="step-text">Soroban <strong>register_identity()</strong> stores hashed_rin + public key on the Stellar ledger. <span class="chain-badge on-chain">On-Chain</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <div class="step-text">Ambassador QR scan triggers <strong>vouch()</strong> → <strong>set_verified(true)</strong>; green badge appears in UI.</div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <h3>💸 M-Pesa Bridge (Mint)</h3>
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div class="step-text">User taps <strong>Deposit</strong> → sees Paybill number &amp; account instructions.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-text">User sends money via M-Pesa. <strong>Safaricom Daraja</strong> fires a C2B webhook. <span class="chain-badge off-chain">Off-Chain</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-text">Django matches phone to <code>RefugeeIdentity</code>, calls <strong>mint_tokens_for_deposit()</strong>.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div class="step-text">Stellar payment op sends <strong>KES token</strong> (ClickPesa issuer) to user's Stellar address. <span class="chain-badge on-chain">On-Chain</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <div class="step-text">Wallet Dashboard balance updates via <strong>Horizon API</strong> on next refresh.</div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <h3>🔄 Withdrawal (Burn)</h3>
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div class="step-text">User taps <strong>Withdraw</strong>, enters phone number and amount.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>burn_tokens_for_withdrawal()</strong> sends KES tokens back to the ClickPesa issuer. <span class="chain-badge on-chain">On-Chain</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-text">On success, Django triggers Daraja <strong>B2C payment</strong> to the user's phone number. <span class="chain-badge off-chain">Off-Chain</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div class="step-text">KES cash arrives in the user's <strong>M-Pesa wallet</strong> within seconds.</div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <h3>🔐 Security Layer</h3>
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div class="step-text">Stellar <strong>private key</strong> is generated server-side, returned ONCE to the client.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-text">Client stores private key in <strong>expo-secure-store</strong> (hardware-backed keychain).</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>expo-local-authentication</strong> requires Face ID / Fingerprint before any key access.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div class="step-text">All API calls require a <strong>Bearer JWT</strong> (60-min lifetime, silent refresh via interceptor).</div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <h3>📊 Trust &amp; Credit Vault</h3>
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div class="step-text">Trust Score Engine reads <strong>on-chain vouches</strong> from VouchContract. <span class="chain-badge on-chain">On-Chain</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-text">Adds <strong>off-chain signals</strong>: tx volume, account age, verification status. <span class="chain-badge off-chain">Off-Chain</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-text">Score 0–100 → credit limit: <strong>0 / 5K / 15K / 30K KES</strong>.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div class="step-text">Borrow UI renders <strong>Gold/Silver/Bronze tier ring</strong> and loan slider up to the limit.</div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <h3>🌍 AI Language Layer</h3>
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div class="step-text">App launches with <strong>LanguageSelectionScreen</strong> (EN / SW / SO / AR).</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-text">Choice persisted to <strong>AsyncStorage</strong> via LanguageContext.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-text">All UI strings rendered via <strong>t("key")</strong> hook with RTL support for Arabic.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div class="step-text">Vouching agreements translated server-side via <strong>deep-translator</strong> (Google Translate).</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "base",
+      themeVariables: {
+        background:          "#0a0a0a",
+        primaryColor:        "#1a1a1a",
+        primaryTextColor:    "#e4e4e7",
+        primaryBorderColor:  "#3f3f46",
+        lineColor:           "#FF6600",
+        secondaryColor:      "#111827",
+        tertiaryColor:       "#0f172a",
+        edgeLabelBackground: "#111",
+        clusterBkg:          "#0f0f0f",
+        clusterBorder:       "#27272a",
+        fontFamily:          "Segoe UI, system-ui, sans-serif",
+        fontSize:            "12px",
+      },
+      flowchart: {
+        curve: "basis",
+        padding: 20,
+        nodeSpacing: 40,
+        rankSpacing: 50,
+        useMaxWidth: true,
+      },
+      securityLevel: "loose",
+    });
+  </script>
+</body>
+</html>

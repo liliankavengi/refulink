@@ -1,8 +1,11 @@
 import React, { useCallback, useState } from "react";
+import PropTypes from "prop-types";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  StatusBar,
   Text,
   TouchableOpacity,
   View,
@@ -15,9 +18,38 @@ import { getVouchStatus, requestVouch } from "../../services/verificationService
 
 const STATUS_DESCRIPTIONS = {
   UNVERIFIED: "Your identity has not yet been verified on the Stellar network.",
-  PENDING: "Your vouch request is pending. The Ambassador must sign on-chain.",
-  VOUCHED: "Your identity is verified and recorded on the Stellar blockchain.",
+  PENDING:    "Your vouch request is pending. The Ambassador must sign on-chain.",
+  VOUCHED:    "Your identity is verified and recorded on the Stellar blockchain.",
 };
+
+InfoRow.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+};
+
+function InfoRow({ label, value }) {
+  return (
+    <View style={{ marginBottom: 16 }}>
+      <Text style={{
+        color: "#52525B",
+        fontSize: 10,
+        fontWeight: "700",
+        letterSpacing: 2,
+        textTransform: "uppercase",
+        marginBottom: 4,
+      }}>
+        {label}
+      </Text>
+      <Text style={{ color: "#FFF", fontSize: 13, fontFamily: "monospace" }}>{value}</Text>
+    </View>
+  );
+}
+
+function truncate(str, maxLen) {
+  if (!str) return "";
+  if (str.length <= maxLen) return str;
+  return `${str.slice(0, maxLen / 2)}…${str.slice(-maxLen / 2)}`;
+}
 
 export default function VerificationDashboard() {
   const [identity, setIdentity] = useState(null);
@@ -54,8 +86,7 @@ export default function VerificationDashboard() {
       );
       await fetchStatus();
     } catch (err) {
-      const message = err.response?.data?.detail || "Failed to submit vouch request.";
-      Alert.alert("Error", message);
+      Alert.alert("Error", err.response?.data?.detail || "Failed to submit vouch request.");
     } finally {
       setVouching(false);
     }
@@ -63,9 +94,9 @@ export default function VerificationDashboard() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-black items-center justify-center">
-        <ActivityIndicator color="#FF6B00" size="large" />
-      </View>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#000", alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator color="#FF6600" size="large" />
+      </SafeAreaView>
     );
   }
 
@@ -74,118 +105,118 @@ export default function VerificationDashboard() {
   const isPending = currentStatus === "PENDING";
 
   return (
-    <ScrollView
-      className="flex-1 bg-black"
-      contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 48, paddingBottom: 40 }}
-    >
-      {/* Header */}
-      <Text className="text-white text-3xl font-bold mb-1">Verification</Text>
-      <Text className="text-gray-400 text-sm mb-8">
-        RefuLink Social Vouching System
-      </Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 32, paddingBottom: 40 }}>
 
-      {/* Status Card */}
-      <View
-        style={{ borderColor: "#FF6B00", borderWidth: 1 }}
-        className="bg-neutral-900 rounded-2xl p-5 mb-6"
-      >
-        <Text className="text-gray-400 text-xs uppercase tracking-widest mb-3">
-          Current Status
+        <Text style={{ color: "#FFF", fontSize: 28, fontWeight: "900", marginBottom: 4 }}>
+          Verification
         </Text>
-        <StatusBadge status={currentStatus} />
-        <Text className="text-gray-300 text-sm mt-4 leading-5">
-          {STATUS_DESCRIPTIONS[currentStatus]}
+        <Text style={{ color: "#52525B", fontSize: 13, marginBottom: 28 }}>
+          RefuLink Social Vouching System
         </Text>
-      </View>
 
-      {/* Identity Details */}
-      {identity?.hashed_rin && (
-        <View className="bg-neutral-900 rounded-2xl p-5 mb-6">
-          <Text className="text-gray-400 text-xs uppercase tracking-widest mb-4">
-            Identity Details
+        {/* Status Card */}
+        <View style={{
+          backgroundColor: "#111",
+          borderWidth: 1,
+          borderColor: "#FF6600",
+          borderRadius: 16,
+          padding: 20,
+          marginBottom: 16,
+        }}>
+          <Text style={{
+            color: "#52525B",
+            fontSize: 10,
+            fontWeight: "700",
+            letterSpacing: 2.5,
+            textTransform: "uppercase",
+            marginBottom: 14,
+          }}>
+            Current Status
           </Text>
-
-          <InfoRow label="Reference Hash" value={truncate(identity.hashed_rin, 24)} />
-          <InfoRow
-            label="Stellar Address"
-            value={truncate(identity.stellar_public_key, 24)}
-          />
-          {identity.vouched_by ? (
-            <InfoRow
-              label="Vouched By"
-              value={truncate(identity.vouched_by, 24)}
-            />
-          ) : null}
-          {identity.vouched_at ? (
-            <InfoRow
-              label="Vouched At"
-              value={new Date(identity.vouched_at).toLocaleDateString()}
-            />
-          ) : null}
+          <StatusBadge status={currentStatus} />
+          <Text style={{ color: "#A1A1AA", fontSize: 13, marginTop: 14, lineHeight: 20 }}>
+            {STATUS_DESCRIPTIONS[currentStatus]}
+          </Text>
         </View>
-      )}
 
-      {/* Action */}
-      {!isVouched && (
-        <TouchableOpacity
-          onPress={() => setScanning(true)}
-          disabled={isPending || vouching}
-          style={{
-            backgroundColor: isPending || vouching ? "#4B2200" : "#FF6B00",
-            borderRadius: 12,
-            paddingVertical: 16,
-            alignItems: "center",
-            marginTop: 8,
-          }}
-        >
-          {vouching ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
-              {isPending ? "Awaiting Ambassador Signature" : "Scan Ambassador QR Code"}
-            </Text>
-          )}
-        </TouchableOpacity>
-      )}
-
-      {isVouched && (
-        <View
-          style={{
-            borderColor: "#22C55E",
+        {/* Identity Details */}
+        {identity?.hashed_rin && (
+          <View style={{
+            backgroundColor: "#111",
             borderWidth: 1,
-            borderRadius: 12,
-            paddingVertical: 16,
-            alignItems: "center",
+            borderColor: "#222",
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+          }}>
+            <Text style={{
+              color: "#52525B",
+              fontSize: 10,
+              fontWeight: "700",
+              letterSpacing: 2.5,
+              textTransform: "uppercase",
+              marginBottom: 16,
+            }}>
+              Identity Details
+            </Text>
+            <InfoRow label="Reference Hash" value={truncate(identity.hashed_rin, 24)} />
+            <InfoRow label="Stellar Address" value={truncate(identity.stellar_public_key, 24)} />
+            {identity.vouched_by && (
+              <InfoRow label="Vouched By" value={truncate(identity.vouched_by, 24)} />
+            )}
+            {identity.vouched_at && (
+              <InfoRow label="Vouched At" value={new Date(identity.vouched_at).toLocaleDateString()} />
+            )}
+          </View>
+        )}
+
+        {/* Action Button */}
+        {!isVouched && (
+          <TouchableOpacity
+            onPress={() => setScanning(true)}
+            disabled={isPending || vouching}
+            style={{
+              backgroundColor: isPending || vouching ? "#1A0A00" : "#FF6600",
+              borderWidth: 1,
+              borderColor: "#FF6600",
+              borderRadius: 16,
+              paddingVertical: 18,
+              alignItems: "center",
+            }}
+          >
+            {vouching ? (
+              <ActivityIndicator color="#FF6600" />
+            ) : (
+              <Text style={{
+                color: isPending ? "#FF6600" : "#000",
+                fontWeight: "700",
+                fontSize: 15,
+              }}>
+                {isPending ? "Awaiting Ambassador Signature" : "Scan Ambassador QR Code"}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {isVouched && (
+          <View style={{
             backgroundColor: "#052E16",
-          }}
-        >
-          <Text style={{ color: "#22C55E", fontWeight: "700", fontSize: 16 }}>
-            Identity Verified on Stellar
-          </Text>
-        </View>
-      )}
+            borderWidth: 1,
+            borderColor: "#22C55E",
+            borderRadius: 16,
+            paddingVertical: 18,
+            alignItems: "center",
+          }}>
+            <Text style={{ color: "#22C55E", fontWeight: "700", fontSize: 15 }}>
+              Identity Verified on Stellar
+            </Text>
+          </View>
+        )}
 
-      {/* QR Scanner Modal */}
-      <QRScanner
-        visible={scanning}
-        onScan={handleQRScan}
-        onClose={() => setScanning(false)}
-      />
-    </ScrollView>
+        <QRScanner visible={scanning} onScan={handleQRScan} onClose={() => setScanning(false)} />
+      </ScrollView>
+    </SafeAreaView>
   );
-}
-
-function InfoRow({ label, value }) {
-  return (
-    <View className="mb-3">
-      <Text className="text-gray-500 text-xs mb-1">{label}</Text>
-      <Text className="text-white text-sm font-mono">{value}</Text>
-    </View>
-  );
-}
-
-function truncate(str, maxLen) {
-  if (!str) return "";
-  if (str.length <= maxLen) return str;
-  return `${str.slice(0, maxLen / 2)}…${str.slice(-maxLen / 2)}`;
 }
