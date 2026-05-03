@@ -4,6 +4,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default')
+PII_ENCRYPTION_KEY = os.environ.get('PII_ENCRYPTION_KEY', '')
 
 ALIEN_CHECK_API_URL = os.environ.get('ALIEN_CHECK_API_URL')
 ALIEN_CHECK_API_TOKEN = os.environ.get('ALIEN_CHECK_API_TOKEN')
