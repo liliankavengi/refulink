@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from .models import MpesaTransaction
 from .serializers import C2BCallbackSerializer, DepositInfoSerializer, WithdrawalRequestSerializer
 from .services import burn_tokens_for_withdrawal, get_deposit_info, mint_tokens_for_deposit, trigger_b2c_payment
+from apps.security.compliance import log_high_value_transaction
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +91,14 @@ class C2BCallbackView(views.APIView):
             tx.status = MpesaTransaction.TxStatus.CONFIRMED
 
         tx.save(update_fields=["user", "stellar_tx_hash", "status"])
+        log_high_value_transaction(
+            user=tx.user,
+            source_type="mpesa",
+            source_reference=tx.mpesa_receipt,
+            amount_kes=tx.amount_kes,
+            transaction_state="completed" if tx.status != MpesaTransaction.TxStatus.FAILED else "failed",
+            notes=f"M-Pesa deposit callback status={tx.status}",
+        )
         return Response({"ResultCode": "0", "ResultDesc": "Accepted"})
 
 
@@ -132,6 +141,14 @@ class WithdrawalView(views.APIView):
         except Exception as exc:
             tx.status = MpesaTransaction.TxStatus.FAILED
             tx.save(update_fields=["status"])
+            log_high_value_transaction(
+                user=request.user,
+                source_type="mpesa",
+                source_reference=tx.mpesa_receipt,
+                amount_kes=tx.amount_kes,
+                transaction_state="failed",
+                notes=f"M-Pesa withdrawal failed during burn: {exc}",
+            )
             return Response(
                 {"detail": f"Token burn failed: {exc}"},
                 status=status.HTTP_502_BAD_GATEWAY,
@@ -140,10 +157,27 @@ class WithdrawalView(views.APIView):
         try:
             daraja_resp = trigger_b2c_payment(phone, amount)
         except Exception as exc:
+            log_high_value_transaction(
+                user=request.user,
+                source_type="mpesa",
+                source_reference=tx.mpesa_receipt,
+                amount_kes=tx.amount_kes,
+                transaction_state="failed",
+                notes=f"M-Pesa withdrawal payout failed: {exc}",
+            )
             return Response(
                 {"detail": f"M-Pesa B2C error: {exc}"},
                 status=status.HTTP_502_BAD_GATEWAY,
             )
+
+        log_high_value_transaction(
+            user=request.user,
+            source_type="mpesa",
+            source_reference=tx.mpesa_receipt,
+            amount_kes=tx.amount_kes,
+            transaction_state="completed",
+            notes="M-Pesa withdrawal completed",
+        )
 
         return Response(
             {

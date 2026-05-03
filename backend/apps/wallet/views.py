@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from rest_framework import status, views
 from rest_framework.permissions import IsAuthenticated
@@ -6,6 +7,7 @@ from rest_framework.response import Response
 from stellar_sdk import Asset, Keypair, Network, Server, TransactionBuilder
 
 from apps.stellar.horizon_client import get_kes_balance, get_transactions
+from apps.security.compliance import log_high_value_transaction
 
 from .models import TransactionLog
 from .serializers import (
@@ -114,11 +116,12 @@ class SendTokenView(views.APIView):
 
         sender_secret = os.getenv("SENDER_SECRET_KEY", "")
         destination = serializer.validated_data["destination_address"]
-        amount = str(serializer.validated_data["amount_kes"])
+        amount_value = serializer.validated_data["amount_kes"]
+        amount = str(amount_value)
+        attempt_reference = f"wallet-attempt-{request.user.id}-{uuid.uuid4().hex[:16]}"
 
         if not sender_secret:
             # Dev / offline mode: log the intent without hitting Stellar
-            import uuid
             tx_hash = f"dev-{uuid.uuid4().hex[:16]}"
             TransactionLog.objects.create(
                 user=request.user,
@@ -127,6 +130,14 @@ class SendTokenView(views.APIView):
                 amount_kes=serializer.validated_data["amount_kes"],
                 counterparty_address=destination,
                 status=TransactionLog.TxStatus.COMPLETED,
+            )
+            log_high_value_transaction(
+                user=request.user,
+                source_type="wallet",
+                source_reference=tx_hash,
+                amount_kes=amount_value,
+                transaction_state="completed",
+                notes=f"Wallet send to {destination}",
             )
             return Response(
                 {
@@ -162,6 +173,14 @@ class SendTokenView(views.APIView):
             response = server.submit_transaction(tx)
             tx_hash = response.get("hash") or response.get("id", "unknown")
         except Exception as exc:
+            log_high_value_transaction(
+                user=request.user,
+                source_type="wallet",
+                source_reference=attempt_reference,
+                amount_kes=amount_value,
+                transaction_state="attempted",
+                notes=f"Wallet send attempt failed for {destination}: {exc}",
+            )
             return Response(
                 {"detail": f"Transaction failed: {exc}"},
                 status=status.HTTP_502_BAD_GATEWAY,
@@ -174,6 +193,14 @@ class SendTokenView(views.APIView):
             amount_kes=serializer.validated_data["amount_kes"],
             counterparty_address=destination,
             status=TransactionLog.TxStatus.COMPLETED,
+        )
+        log_high_value_transaction(
+            user=request.user,
+            source_type="wallet",
+            source_reference=tx_hash,
+            amount_kes=amount_value,
+            transaction_state="completed",
+            notes=f"Wallet send to {destination}",
         )
 
         return Response(
@@ -209,5 +236,13 @@ class AuditLogView(views.APIView):
         TransactionLog.objects.create(
             user=request.user,
             **serializer.validated_data,
+        )
+        log_high_value_transaction(
+            user=request.user,
+            source_type="wallet",
+            source_reference=tx_hash,
+            amount_kes=serializer.validated_data["amount_kes"],
+            transaction_state="completed",
+            notes="Client-side signed wallet audit log",
         )
         return Response({"detail": "Audit logged."}, status=status.HTTP_201_CREATED)
