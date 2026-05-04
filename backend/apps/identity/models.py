@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from apps.security.fields import EncryptedDateField, EncryptedTextField
+
 
 class VerificationStatus(models.TextChoices):
     UNVERIFIED = "UNVERIFIED", "Unverified"
@@ -47,19 +49,18 @@ class AlienID(models.Model):
     during the KYC process.
     """
     # Primary Identifiers
-    id_number = models.CharField(
-        max_length=20, 
+    id_number = EncryptedTextField(
         unique=True, 
         db_index=True,
         help_text="The Alien ID card number (e.g., 123456)"
     )
-    rin = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    rin = EncryptedTextField(max_length=20, unique=True, null=True, blank=True)
     hashed_rin = models.CharField(max_length=64, unique=True, null=True, blank=True)
     
     # Identity Details
-    first_name = models.CharField(max_length=100, null=True, blank=True)
-    last_name = models.CharField(max_length=100, null=True, blank=True)
-    date_of_birth = models.DateField(null=True, blank=True)
+    first_name = EncryptedTextField(max_length=100, null=True, blank=True)
+    last_name = EncryptedTextField(max_length=100, null=True, blank=True)
+    date_of_birth = EncryptedDateField(null=True, blank=True)
     
     # Status and Metadata
     is_active = models.BooleanField(

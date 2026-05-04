@@ -44,7 +44,7 @@ class VerifyRINView(views.APIView):
             full_name = result.get("full_name") or "Unknown Alien"
             user, _ = User.objects.get_or_create(
                 username=f"alien_{result['id_number']}",
-                defaults={"first_name": full_name[:30]},
+                defaults={},
             )
             refresh = RefreshToken.for_user(user)
             response_data = {

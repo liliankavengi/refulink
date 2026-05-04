@@ -1,9 +1,12 @@
 import os
 from pathlib import Path
+from decimal import Decimal
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default')
+PII_ENCRYPTION_KEY = os.environ.get('PII_ENCRYPTION_KEY', '')
+AML_THRESHOLD_KES = Decimal(os.environ.get('AML_THRESHOLD_KES', '10000'))
 
 ALIEN_CHECK_API_URL = os.environ.get('ALIEN_CHECK_API_URL')
 ALIEN_CHECK_API_TOKEN = os.environ.get('ALIEN_CHECK_API_TOKEN')

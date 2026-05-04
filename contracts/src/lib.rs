@@ -1,73 +1,140 @@
 #![no_std]
+
 use soroban_sdk::{
     contract, contractimpl, contracttype, Address, BytesN, Env,
 };
 
-// ── Storage key enum ────────────────────────────────────────────────────────
 #[contracttype]
 enum DataKey {
-    Vouch(Address),    // persistent: VouchRecord keyed by refugee Address
-    Identity(Address), // persistent: IdentityRecord keyed by refugee Address
-    Ambassador,        // instance:   the single trusted ambassador Address
-    Initialized,       // instance:   one-time init guard
+    Admin,
+    Ambassador(Address),
+    Identity(Address),
+    Vouch(Address, Address),
+    VouchCount(Address),
+    Initialized,
 }
 
-// ── On-chain vouch record (social attestation) ───────────────────────────────
 #[contracttype]
 #[derive(Clone)]
 pub struct VouchRecord {
     pub ambassador: Address,
-    pub hashed_rin: BytesN<32>, // SHA-256 of the refugee's RIN — no PII on-chain
-    pub vouched_at: u64,        // ledger timestamp at time of vouching
+    pub target: Address,
+    pub hashed_rin: BytesN<32>,
+    pub vouched_at: u64,
 }
 
-// ── On-chain identity record (registration + verified flag) ──────────────────
 #[contracttype]
 #[derive(Clone)]
 pub struct IdentityRecord {
-    pub hashed_rin: BytesN<32>, // SHA-256 of the refugee's RIN
-    pub verified: bool,         // set to true after successful on-chain vouch
-    pub registered_at: u64,     // ledger timestamp at registration
+    pub hashed_rin: BytesN<32>,
+    pub verified: bool,
+    pub registered_at: u64,
 }
 
-// ── Contract ─────────────────────────────────────────────────────────────────
 #[contract]
 pub struct VouchContract;
 
 const TTL_THRESHOLD: u32 = 100;
-const TTL_EXTEND: u32 = 6_307_200; // ~1 year at 5-second ledgers
+const TTL_EXTEND: u32 = 6_307_200;
+
+fn assert_initialized(env: &Env) {
+    if !env.storage().instance().has(&DataKey::Initialized) {
+        panic!("not initialized");
+    }
+}
+
+fn assert_admin(env: &Env, caller: &Address) {
+    let admin: Address = env
+        .storage()
+        .instance()
+        .get(&DataKey::Admin)
+        .expect("not initialized");
+    if &admin != caller {
+        panic!("unauthorized");
+    }
+}
+
+fn assert_ambassador(env: &Env, caller: &Address) {
+    if !env.storage().instance().has(&DataKey::Ambassador(caller.clone())) {
+        panic!("unauthorized");
+    }
+}
+
+fn bump_vouch_count(env: &Env, target: &Address) {
+    let key = DataKey::VouchCount(target.clone());
+    let current = env
+        .storage()
+        .persistent()
+        .get::<DataKey, u32>(&key)
+        .unwrap_or(0);
+    let next = current + 1;
+
+    env.storage().persistent().set(&key, &next);
+    env.storage()
+        .persistent()
+        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND);
+}
 
 #[contractimpl]
 impl VouchContract {
-    /// One-time initialisation. Sets the single trusted Ambassador address.
     pub fn init(env: Env, ambassador: Address) {
         if env.storage().instance().has(&DataKey::Initialized) {
             panic!("already initialized");
         }
-        env.storage().instance().set(&DataKey::Ambassador, &ambassador);
+
+        env.storage().instance().set(&DataKey::Admin, &ambassador);
+        env.storage()
+            .instance()
+            .set(&DataKey::Ambassador(ambassador.clone()), &true);
         env.storage().instance().set(&DataKey::Initialized, &true);
     }
 
-    // ── Identity registration ─────────────────────────────────────────────────
-
-    /// Admin registers a refugee's hashed RIN linked to their Stellar address.
-    /// Sets verified = false. Must be called by the trusted Ambassador.
-    pub fn register_identity(env: Env, admin: Address, target: Address, hashed_rin: BytesN<32>) {
+    pub fn add_ambassador(env: Env, admin: Address, ambassador: Address) {
         admin.require_auth();
-        let trusted: Address = env
-            .storage()
+        assert_initialized(&env);
+        assert_admin(&env, &admin);
+
+        env.storage()
             .instance()
-            .get(&DataKey::Ambassador)
-            .expect("not initialized");
-        if admin != trusted {
-            panic!("unauthorized");
+            .set(&DataKey::Ambassador(ambassador), &true);
+    }
+
+    pub fn remove_ambassador(env: Env, admin: Address, ambassador: Address) {
+        admin.require_auth();
+        assert_initialized(&env);
+        assert_admin(&env, &admin);
+
+        if ambassador == admin {
+            panic!("cannot remove admin");
         }
+
+        env.storage()
+            .instance()
+            .remove(&DataKey::Ambassador(ambassador));
+    }
+
+    pub fn is_ambassador(env: Env, ambassador: Address) -> bool {
+        env.storage()
+            .instance()
+            .has(&DataKey::Ambassador(ambassador))
+    }
+
+    pub fn register_identity(
+        env: Env,
+        ambassador: Address,
+        target: Address,
+        hashed_rin: BytesN<32>,
+    ) {
+        ambassador.require_auth();
+        assert_initialized(&env);
+        assert_ambassador(&env, &ambassador);
 
         let record = IdentityRecord {
             hashed_rin,
             verified: false,
             registered_at: env.ledger().timestamp(),
         };
+
         env.storage()
             .persistent()
             .set(&DataKey::Identity(target.clone()), &record);
@@ -76,24 +143,19 @@ impl VouchContract {
             .extend_ttl(&DataKey::Identity(target), TTL_THRESHOLD, TTL_EXTEND);
     }
 
-    /// Admin flips the verified flag for a registered refugee address.
-    pub fn set_verified(env: Env, admin: Address, target: Address, verified: bool) {
-        admin.require_auth();
-        let trusted: Address = env
-            .storage()
-            .instance()
-            .get(&DataKey::Ambassador)
-            .expect("not initialized");
-        if admin != trusted {
-            panic!("unauthorized");
-        }
+    pub fn set_verified(env: Env, ambassador: Address, target: Address, verified: bool) {
+        ambassador.require_auth();
+        assert_initialized(&env);
+        assert_ambassador(&env, &ambassador);
 
         let mut record: IdentityRecord = env
             .storage()
             .persistent()
             .get(&DataKey::Identity(target.clone()))
             .expect("not registered");
+
         record.verified = verified;
+
         env.storage()
             .persistent()
             .set(&DataKey::Identity(target.clone()), &record);
@@ -102,7 +164,6 @@ impl VouchContract {
             .extend_ttl(&DataKey::Identity(target), TTL_THRESHOLD, TTL_EXTEND);
     }
 
-    /// Returns the verified flag for the given address. False if not registered.
     pub fn is_verified(env: Env, target: Address) -> bool {
         env.storage()
             .persistent()
@@ -111,7 +172,6 @@ impl VouchContract {
             .unwrap_or(false)
     }
 
-    /// Returns the full IdentityRecord. Panics if address was never registered.
     pub fn get_identity(env: Env, target: Address) -> IdentityRecord {
         env.storage()
             .persistent()
@@ -119,45 +179,46 @@ impl VouchContract {
             .expect("not registered")
     }
 
-    // ── Social vouching ───────────────────────────────────────────────────────
-
-    /// Ambassador signs an attestation for a refugee's Stellar public key.
     pub fn vouch(env: Env, ambassador: Address, target: Address, hashed_rin: BytesN<32>) {
         ambassador.require_auth();
-        let trusted: Address = env
-            .storage()
-            .instance()
-            .get(&DataKey::Ambassador)
-            .expect("not initialized");
-        if ambassador != trusted {
-            panic!("unauthorized: not the trusted ambassador");
+        assert_initialized(&env);
+        assert_ambassador(&env, &ambassador);
+
+        let key = DataKey::Vouch(target.clone(), ambassador.clone());
+        if env.storage().persistent().has(&key) {
+            panic!("already vouched by this ambassador");
         }
 
         let record = VouchRecord {
-            ambassador,
+            ambassador: ambassador.clone(),
+            target: target.clone(),
             hashed_rin,
             vouched_at: env.ledger().timestamp(),
         };
+
+        env.storage().persistent().set(&key, &record);
         env.storage()
             .persistent()
-            .set(&DataKey::Vouch(target.clone()), &record);
-        env.storage()
-            .persistent()
-            .extend_ttl(&DataKey::Vouch(target), TTL_THRESHOLD, TTL_EXTEND);
+            .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND);
+
+        bump_vouch_count(&env, &target);
     }
 
-    /// Returns true if the given address has been vouched by the Ambassador.
     pub fn is_vouched(env: Env, target: Address) -> bool {
-        env.storage()
-            .persistent()
-            .has(&DataKey::Vouch(target))
+        Self::get_vouch_count(env, target) > 0
     }
 
-    /// Returns the full VouchRecord for an address. Panics if not vouched.
-    pub fn get_vouch(env: Env, target: Address) -> VouchRecord {
+    pub fn get_vouch_count(env: Env, target: Address) -> u32 {
         env.storage()
             .persistent()
-            .get(&DataKey::Vouch(target))
+            .get::<DataKey, u32>(&DataKey::VouchCount(target))
+            .unwrap_or(0)
+    }
+
+    pub fn get_vouch(env: Env, target: Address, ambassador: Address) -> VouchRecord {
+        env.storage()
+            .persistent()
+            .get(&DataKey::Vouch(target, ambassador))
             .expect("not vouched")
     }
 }

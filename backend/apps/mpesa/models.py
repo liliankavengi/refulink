@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from apps.security.fields import EncryptedJSONField, EncryptedTextField
+
 
 class MpesaTransaction(models.Model):
     class TxType(models.TextChoices):
@@ -21,14 +23,14 @@ class MpesaTransaction(models.Model):
         related_name="mpesa_transactions",
     )
     mpesa_receipt    = models.CharField(max_length=20, unique=True, db_index=True)
-    phone_number     = models.CharField(max_length=15)
+    phone_number     = EncryptedTextField(max_length=15)
     amount_kes       = models.DecimalField(max_digits=12, decimal_places=2)
     tx_type          = models.CharField(max_length=12, choices=TxType.choices)
     status           = models.CharField(
         max_length=12, choices=TxStatus.choices, default=TxStatus.PENDING
     )
     stellar_tx_hash  = models.CharField(max_length=64, blank=True, default="")
-    raw_payload      = models.JSONField(default=dict)
+    raw_payload      = EncryptedJSONField(default=dict)
     created_at       = models.DateTimeField(auto_now_add=True)
     updated_at       = models.DateTimeField(auto_now=True)
 
