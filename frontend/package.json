@@ -11,10 +11,9 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~55.0.10",
-    "@expo/webpack-config": "^18.0.0",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "@react-navigation/bottom-tabs": "^7.15.11",
-    "@react-navigation/native": "^6.0.0",
+    "@react-navigation/bottom-tabs": "^6",
+    "@react-navigation/native": "^6",
     "@react-navigation/native-stack": "^6.11.0",
     "axios": "^1.6.0",
     "expo": "~55.0.18",
