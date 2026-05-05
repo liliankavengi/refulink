@@ -1,3 +1,4 @@
+import hashlib
 import os
 
 from django.contrib.auth.models import User
@@ -16,6 +17,7 @@ from .serializers import (
     VouchStatusSerializer,
 )
 from .services import AlienCheckError, verify_alien_id
+from apps.security.audit_logs import log_registration_event, RegistrationAuditLog
 
 
 class VerifyRINView(views.APIView):
@@ -32,9 +34,17 @@ class VerifyRINView(views.APIView):
 
         identifier = serializer.validated_data["identifier"]
 
+        identifier_hash = hashlib.sha256(identifier.encode()).hexdigest()
+
         try:
             result = verify_alien_id(identifier)
         except AlienCheckError as e:
+            log_registration_event(
+                event_type=RegistrationAuditLog.EventType.RIN_VERIFY_FAIL,
+                request=request,
+                identifier_hash=identifier_hash,
+                extra={"error": str(e), "source": "api_error"},
+            )
             return Response(
                 {"verified": False, "message": str(e)},
                 status=status.HTTP_502_BAD_GATEWAY,
@@ -47,6 +57,14 @@ class VerifyRINView(views.APIView):
                 defaults={},
             )
             refresh = RefreshToken.for_user(user)
+
+            log_registration_event(
+                event_type=RegistrationAuditLog.EventType.RIN_VERIFY_SUCCESS,
+                request=request,
+                user=user,
+                identifier_hash=identifier_hash,
+            )
+
             response_data = {
                 "verified": True,
                 "message": "Identity verified successfully.",
@@ -63,6 +81,12 @@ class VerifyRINView(views.APIView):
             response_serializer.is_valid()
             return Response(response_serializer.data, status=status.HTTP_200_OK)
 
+        log_registration_event(
+            event_type=RegistrationAuditLog.EventType.RIN_VERIFY_FAIL,
+            request=request,
+            identifier_hash=identifier_hash,
+            extra={"source": "invalid_identifier"},
+        )
         return Response(
             {"verified": False, "message": "Invalid identifier. Verification failed."},
             status=status.HTTP_403_FORBIDDEN,
@@ -84,6 +108,11 @@ class RegisterRefugeeIdentityView(views.APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         if hasattr(request.user, "refugee_identity"):
+            log_registration_event(
+                event_type=RegistrationAuditLog.EventType.IDENTITY_DUPLICATE,
+                request=request,
+                user=request.user,
+            )
             return Response(
                 {"detail": "Identity already registered."},
                 status=status.HTTP_409_CONFLICT,
@@ -112,6 +141,15 @@ class RegisterRefugeeIdentityView(views.APIView):
             stellar_public_key=public_key,
         )
 
+        log_registration_event(
+            event_type=RegistrationAuditLog.EventType.IDENTITY_REGISTERED,
+            request=request,
+            user=request.user,
+            identifier_hash=hashed_rin,
+            stellar_public_key=public_key,
+            extra={"keypair_generated": private_key is not None},
+        )
+
         # Best-effort: register identity on-chain (non-blocking)
         try:
             from apps.stellar.soroban_client import register_identity
@@ -122,8 +160,22 @@ class RegisterRefugeeIdentityView(views.APIView):
                     refugee_public_key=public_key,
                     hashed_rin_hex=hashed_rin,
                 )
-        except Exception:
-            pass
+                log_registration_event(
+                    event_type=RegistrationAuditLog.EventType.ONCHAIN_ANCHOR_OK,
+                    request=request,
+                    user=request.user,
+                    identifier_hash=hashed_rin,
+                    stellar_public_key=public_key,
+                )
+        except Exception as exc:
+            log_registration_event(
+                event_type=RegistrationAuditLog.EventType.ONCHAIN_ANCHOR_FAIL,
+                request=request,
+                user=request.user,
+                identifier_hash=hashed_rin,
+                stellar_public_key=public_key,
+                extra={"error": str(exc)},
+            )
 
         response_data = {
             "detail": "Refugee identity registered.",

@@ -16,6 +16,7 @@
     "@react-navigation/native": "^6",
     "@react-navigation/native-stack": "^6.11.0",
     "axios": "^1.6.0",
+    "crypto-js": "^4.2.0",
     "expo": "~55.0.18",
     "expo-camera": "~55.0.16",
     "expo-local-authentication": "~55.0.13",

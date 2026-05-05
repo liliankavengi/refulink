@@ -1,6 +1,6 @@
 import CryptoJS from "crypto-js";
 
-const SECRET_KEY = CryptoJS.enc.Utf8.parse("fallback_secret_key_32_bytes_long!");
+const SECRET_KEY = CryptoJS.enc.Utf8.parse("fallback_secret_key_32bytes_ok!!");
 
 export function encryptPayload(data) {
   const jsonStr = JSON.stringify(data);

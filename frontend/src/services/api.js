@@ -2,7 +2,7 @@ import axios from "axios";
 import storage from "../utils/storage";
 import { encryptPayload, decryptPayload } from "../utils/crypto";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://192.168.100.74:8000/api/";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://192.168.100.71:8000/api/";
 
 const api = axios.create({
   baseURL: BASE_URL,
