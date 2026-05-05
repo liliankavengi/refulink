@@ -5,7 +5,7 @@ const TOKEN_KEY = "@refulink_access";
 const REFRESH_KEY = "@refulink_refresh";
 
 export async function verifyRIN(identifier) {
-  const { data } = await api.post("/identity/verify-rin/", { identifier });
+  const { data } = await api.post("/identity/verify/", { identifier });
   if (data.tokens) {
     await storage.setItem(TOKEN_KEY, data.tokens.access);
     await storage.setItem(REFRESH_KEY, data.tokens.refresh);
