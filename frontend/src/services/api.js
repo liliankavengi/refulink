@@ -1,7 +1,8 @@
 import axios from "axios";
 import storage from "../utils/storage";
+import { encryptPayload, decryptPayload } from "../utils/crypto";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:8000/api";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://192.168.100.74:8000/api/";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -15,12 +16,28 @@ api.interceptors.request.use(async (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  const lang = await storage.getItem("@refulink_language");
+  if (lang) {
+    config.headers["Accept-Language"] = lang;
+  }
+  
+  if (config.data && ["post", "put", "patch"].includes(config.method)) {
+    if (!(config.data instanceof FormData)) {
+      config.data = { encrypted_payload: encryptPayload(config.data) };
+    }
+  }
+
   return config;
 });
 
 // On 401, attempt token refresh once
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.data && response.data.encrypted_payload) {
+      response.data = decryptPayload(response.data.encrypted_payload);
+    }
+    return response;
+  },
   async (error) => {
     const original = error.config;
     if (error.response?.status === 401 && !original._retry) {

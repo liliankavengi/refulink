@@ -11,7 +11,7 @@ from .views import (
 app_name = "identity"
 
 urlpatterns = [
-    path("verify-rin/", VerifyRINView.as_view(), name="verify-rin"),
+    path("verify/", VerifyRINView.as_view(), name="verify"),
     path("register-identity/", RegisterRefugeeIdentityView.as_view(), name="register-identity"),
     path("request-vouch/", RequestVouchView.as_view(), name="request-vouch"),
     path("trigger-vouch/", TriggerOnChainVouchView.as_view(), name="trigger-vouch"),

@@ -14,6 +14,7 @@ import PropTypes from "prop-types";
 
 import { sendToken } from "../../services/transferService";
 import { getBalance, getTransactions } from "../../services/walletService";
+import { getMpesaDepositDetails } from "../../services/trustService";
 
 // ── Balance Header ────────────────────────────────────────────────────────────
 
@@ -57,7 +58,7 @@ BalanceHeader.defaultProps = { balance: null, address: "" };
 const ACTIONS = [
   { key: "send",     label: "Send",    icon: "↑" },
   { key: "receive",  label: "Receive", icon: "↓" },
-  { key: "scan",     label: "Scan QR", icon: "◈" },
+  { key: "deposit",  label: "Deposit", icon: "⊞" },
   { key: "withdraw", label: "Withdraw",icon: "⊞" },
 ];
 
@@ -222,8 +223,29 @@ export default function WalletDashboard({ navigation }) {
       Alert.alert("Receive", `Your Stellar address:\n\n${address}`);
       return;
     }
-    if (key === "scan") {
-      navigation.navigate("Verify");
+    if (key === "deposit") {
+      getMpesaDepositDetails().then(data => {
+        Alert.alert(
+          "Deposit via M-Pesa",
+          `Send money to Paybill ${data.paybill}\nAccount: ${data.account_reference}\n\nBalance will update automatically.`,
+          [{ text: "OK" }]
+        );
+        // Start polling for balance update
+        let attempts = 0;
+        const currentBalance = balance;
+        const interval = setInterval(async () => {
+          attempts++;
+          try {
+            const { kes_balance } = await getBalance();
+            if (kes_balance > currentBalance) {
+              clearInterval(interval);
+              onRefresh();
+              Alert.alert("Deposit Received!", `Your balance is now KES ${Number(kes_balance).toFixed(2)}`);
+            }
+          } catch (e) {}
+          if (attempts > 30) clearInterval(interval); // Poll for ~2.5 mins
+        }, 5000);
+      }).catch(() => Alert.alert("Error", "Could not fetch deposit info"));
       return;
     }
     if (key === "withdraw") {
