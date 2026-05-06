@@ -15,7 +15,7 @@ import PropTypes from "prop-types";
 
 import { sendToken } from "../../services/transferService";
 import { getBalance, getTransactions } from "../../services/walletService";
-import { getMpesaDepositDetails } from "../../services/trustService";
+// import { getMpesaDepositDetails } from "../../services/trustService";
 
 // ── Balance Header ────────────────────────────────────────────────────────────
 
@@ -59,8 +59,8 @@ BalanceHeader.defaultProps = { balance: null, address: "" };
 const ACTIONS = [
   { key: "send",     label: "Send",    icon: "↑" },
   { key: "receive",  label: "Receive", icon: "↓" },
-  { key: "deposit",  label: "Deposit", icon: "⊞" },
-  { key: "withdraw", label: "Withdraw",icon: "⊞" },
+  // { key: "deposit",  label: "Deposit", icon: "⊞" },
+  // { key: "withdraw", label: "Withdraw",icon: "⊞" },
 ];
 
 function ActionBar({ onPress }) {
@@ -242,47 +242,7 @@ export default function WalletDashboard({ navigation }) {
       }
       return;
     }
-    if (key === "deposit") {
-      getMpesaDepositDetails().then(data => {
-        const msg = `Send money to Paybill ${data.paybill_number}\nAccount: ${data.account_number}\n\nBalance will update automatically.`;
-        if (Platform.OS === "web") {
-          window.alert(`Deposit via M-Pesa\n\n${msg}`);
-        } else {
-          Alert.alert("Deposit via M-Pesa", msg, [{ text: "OK" }]);
-        }
-        
-        // Start polling for balance update
-        let attempts = 0;
-        const currentBalance = balance;
-        const interval = setInterval(async () => {
-          attempts++;
-          try {
-            const { kes_balance } = await getBalance();
-            if (kes_balance > currentBalance) {
-              clearInterval(interval);
-              onRefresh();
-              if (Platform.OS === "web") {
-                window.alert(`Deposit Received! Your balance is now KES ${Number(kes_balance).toFixed(2)}`);
-              } else {
-                Alert.alert("Deposit Received!", `Your balance is now KES ${Number(kes_balance).toFixed(2)}`);
-              }
-            }
-          } catch (e) {}
-          if (attempts > 30) clearInterval(interval); // Poll for ~2.5 mins
-        }, 5000);
-      }).catch(() => {
-        if (Platform.OS === "web") window.alert("Error: Could not fetch deposit info");
-        else Alert.alert("Error", "Could not fetch deposit info");
-      });
-      return;
-    }
-    if (key === "withdraw") {
-      if (Platform.OS === "web") {
-        window.alert("Withdraw\n\nM-Pesa withdrawal coming soon.");
-      } else {
-        Alert.alert("Withdraw", "M-Pesa withdrawal coming soon.");
-      }
-    }
+    // Deposit and Withdraw handled via Stellar only now
   };
 
   const ListHeader = (

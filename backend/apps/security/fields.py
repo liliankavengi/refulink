@@ -37,9 +37,13 @@ def _decrypt(value: str, domain: str) -> str:
     if not isinstance(value, str) or not value.startswith(_PREFIX):
         return value
 
-    ciphertext = base64.urlsafe_b64decode(value[len(_PREFIX) :].encode("ascii"))
-    plaintext = _get_cipher().decrypt(ciphertext, [domain.encode("utf-8")])
-    return plaintext.decode("utf-8")
+    try:
+        ciphertext = base64.urlsafe_b64decode(value[len(_PREFIX) :].encode("ascii"))
+        plaintext = _get_cipher().decrypt(ciphertext, [domain.encode("utf-8")])
+        return plaintext.decode("utf-8")
+    except Exception:
+        # If decryption fails (e.g. wrong key), return the raw value
+        return value
 
 
 class EncryptedTextField(models.TextField):

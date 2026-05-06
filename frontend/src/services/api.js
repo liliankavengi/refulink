@@ -2,7 +2,7 @@ import axios from "axios";
 import storage from "../utils/storage";
 import { encryptPayload, decryptPayload } from "../utils/crypto";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://192.168.100.71:8000/api/";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:8000/api/";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -21,12 +21,12 @@ api.interceptors.request.use(async (config) => {
     config.headers["Accept-Language"] = lang;
   }
   
-  if (config.data && ["post", "put", "patch"].includes(config.method)) {
-    // Only encrypt if it's not FormData AND not already encrypted (prevents double-encryption on retries)
-    if (!(config.data instanceof FormData) && !config.data.encrypted_payload) {
-      config.data = { encrypted_payload: encryptPayload(config.data) };
-    }
-  }
+  // Encryption disabled — sending plain JSON
+  // if (config.data && ["post", "put", "patch"].includes(config.method)) {
+  //   if (!(config.data instanceof FormData) && !config.data.encrypted_payload) {
+  //     config.data = { encrypted_payload: encryptPayload(config.data) };
+  //   }
+  // }
 
   return config;
 });
@@ -34,9 +34,10 @@ api.interceptors.request.use(async (config) => {
 // On 401, attempt token refresh once
 api.interceptors.response.use(
   (response) => {
-    if (response.data && response.data.encrypted_payload) {
-      response.data = decryptPayload(response.data.encrypted_payload);
-    }
+    // Decryption disabled — receiving plain JSON
+    // if (response.data && response.data.encrypted_payload) {
+    //   response.data = decryptPayload(response.data.encrypted_payload);
+    // }
     return response;
   },
   async (error) => {
