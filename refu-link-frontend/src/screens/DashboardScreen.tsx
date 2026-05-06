@@ -122,7 +122,6 @@ function IconNotification({ color, size = 24 }: { color: string; size?: number }
 
 // ── Dashboard Component ───────────────────────────────────────────────────────
 
-
 export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<any>();
@@ -286,75 +285,7 @@ export default function DashboardScreen() {
             </View>
           </Animated.View>
 
-          {/* Quick Stats */}
-          <Animated.View style={[
-            styles.statsRow,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: cardsSlide }]
-            }
-          ]}>
-            <View style={styles.statCard}>
-              <View style={styles.statIconBox}>
-                <IconVault color={ORANGE} size={20} />
-              </View>
-              <Text style={styles.statValue}>4</Text>
-              <Text style={styles.statLabel}>Vouch Count</Text>
-            </View>
-            
-            <View style={styles.statCard}>
-              <View style={[styles.statIconBox, styles.statIconBoxGreen]}>
-                <IconTrendUp color={GREEN} size={20} />
-              </View>
-              <Text style={styles.statValue}>12</Text>
-              <Text style={styles.statLabel}>Transactions</Text>
-            </View>
-            
-            <View style={styles.statCard}>
-              <View style={[styles.statIconBox, styles.statIconBoxBlue]}>
-                <IconCheck color="#2196F3" size={20} />
-              </View>
-              <Text style={styles.statValue}>98%</Text>
-              <Text style={styles.statLabel}>Trust Score</Text>
-            </View>
-          </Animated.View>
-
-          {/* Vault Quick Access */}
-          <Animated.View style={{
-            opacity: fadeAnim,
-            transform: [{ translateY: cardsSlide }]
-          }}>
-            <Pressable
-              onPress={() => navigation.navigate("Vault")}
-              style={({ pressed }) => [
-                styles.vaultCard,
-                pressed && styles.vaultCardPressed,
-              ]}
-            >
-              <ExpoLinearGradient
-                colors={[ORANGE + '15', ORANGE + '05']}
-                style={styles.vaultGradient}
-              >
-                <View style={styles.vaultLeft}>
-                  <View style={styles.vaultIconBox}>
-                    <IconVault color={ORANGE} size={28} />
-                  </View>
-                  <View style={styles.vaultText}>
-                    <Text style={styles.vaultTitle}>REF-M-LINK VAULT</Text>
-                    <Text style={styles.vaultSub}>Save, earn & borrow with trust</Text>
-                  </View>
-                </View>
-                <View style={styles.vaultRight}>
-                  <View style={styles.vaultBadge}>
-                    <Text style={styles.vaultBadgeText}>NEW</Text>
-                  </View>
-                  <IconChevronRight color={ORANGE} size={24} />
-                </View>
-              </ExpoLinearGradient>
-            </Pressable>
-          </Animated.View>
-
-          {/* Action Buttons */}
+          {/* Action Buttons - Right below balance card */}
           <Animated.View style={[
             styles.actionRow,
             {
@@ -392,7 +323,7 @@ export default function DashboardScreen() {
             </Pressable>
           </Animated.View>
 
-          {/* Recent Activity */}
+          {/* Recent Activity - Now below action buttons */}
           <Animated.View style={{
             opacity: fadeAnim,
             transform: [{ translateY: cardsSlide }]
@@ -426,6 +357,74 @@ export default function DashboardScreen() {
                 </View>
                 <Text style={[styles.activityAmount, styles.activitySent]}>-KES 2,500</Text>
               </View>
+            </View>
+          </Animated.View>
+
+          {/* Vault Quick Access - Now below recent activity */}
+          <Animated.View style={{
+            opacity: fadeAnim,
+            transform: [{ translateY: cardsSlide }]
+          }}>
+            <Pressable
+              onPress={() => navigation.navigate("Vault")}
+              style={({ pressed }) => [
+                styles.vaultCard,
+                pressed && styles.vaultCardPressed,
+              ]}
+            >
+              <ExpoLinearGradient
+                colors={[ORANGE + '15', ORANGE + '05']}
+                style={styles.vaultGradient}
+              >
+                <View style={styles.vaultLeft}>
+                  <View style={styles.vaultIconBox}>
+                    <IconVault color={ORANGE} size={28} />
+                  </View>
+                  <View style={styles.vaultText}>
+                    <Text style={styles.vaultTitle}>REF-M-LINK VAULT</Text>
+                    <Text style={styles.vaultSub}>Save, earn & borrow with trust</Text>
+                  </View>
+                </View>
+                <View style={styles.vaultRight}>
+                  <View style={styles.vaultBadge}>
+                    <Text style={styles.vaultBadgeText}>NEW</Text>
+                  </View>
+                  <IconChevronRight color={ORANGE} size={24} />
+                </View>
+              </ExpoLinearGradient>
+            </Pressable>
+          </Animated.View>
+
+          {/* Quick Stats */}
+          <Animated.View style={[
+            styles.statsRow,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: cardsSlide }]
+            }
+          ]}>
+            <View style={styles.statCard}>
+              <View style={styles.statIconBox}>
+                <IconVault color={ORANGE} size={20} />
+              </View>
+              <Text style={styles.statValue}>4</Text>
+              <Text style={styles.statLabel}>Vouch Count</Text>
+            </View>
+            
+            <View style={styles.statCard}>
+              <View style={[styles.statIconBox, styles.statIconBoxGreen]}>
+                <IconTrendUp color={GREEN} size={20} />
+              </View>
+              <Text style={styles.statValue}>12</Text>
+              <Text style={styles.statLabel}>Transactions</Text>
+            </View>
+            
+            <View style={styles.statCard}>
+              <View style={[styles.statIconBox, styles.statIconBoxBlue]}>
+                <IconCheck color="#2196F3" size={20} />
+              </View>
+              <Text style={styles.statValue}>98%</Text>
+              <Text style={styles.statLabel}>Trust Score</Text>
             </View>
           </Animated.View>
         </ScrollView>
@@ -638,110 +637,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  // Stats Row
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: CARD_BG,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#2A2A3E',
-  },
-  statIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: ORANGE + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statIconBoxGreen: {
-    backgroundColor: GREEN + '15',
-  },
-  statIconBoxBlue: {
-    backgroundColor: '#2196F3' + '15',
-  },
-  statValue: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  statLabel: {
-    color: '#666',
-    fontSize: 8,
-    fontWeight: "600",
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  // Vault Card
-  vaultCard: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: ORANGE + '30',
-  },
-  vaultCardPressed: {
-    borderColor: ORANGE,
-  },
-  vaultGradient: {
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  vaultLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    flex: 1,
-  },
-  vaultIconBox: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: ORANGE + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: ORANGE + '30',
-  },
-  vaultText: {
-    gap: 4,
-  },
-  vaultTitle: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 1.5,
-  },
-  vaultSub: {
-    color: ORANGE,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  vaultRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  vaultBadge: {
-    backgroundColor: ORANGE,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  vaultBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1,
-  },
   // Action Buttons
   actionRow: {
     flexDirection: 'row',
@@ -850,5 +745,109 @@ const styles = StyleSheet.create({
   },
   activitySent: {
     color: ORANGE,
+  },
+  // Vault Card
+  vaultCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: ORANGE + '30',
+  },
+  vaultCardPressed: {
+    borderColor: ORANGE,
+  },
+  vaultGradient: {
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  vaultLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    flex: 1,
+  },
+  vaultIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: ORANGE + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: ORANGE + '30',
+  },
+  vaultText: {
+    gap: 4,
+  },
+  vaultTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+  },
+  vaultSub: {
+    color: ORANGE,
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  vaultRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  vaultBadge: {
+    backgroundColor: ORANGE,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  vaultBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+  // Stats Row
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: CARD_BG,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#2A2A3E',
+  },
+  statIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: ORANGE + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statIconBoxGreen: {
+    backgroundColor: GREEN + '15',
+  },
+  statIconBoxBlue: {
+    backgroundColor: '#2196F3' + '15',
+  },
+  statValue: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  statLabel: {
+    color: '#666',
+    fontSize: 8,
+    fontWeight: "600",
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
 });

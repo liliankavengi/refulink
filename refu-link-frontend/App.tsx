@@ -1,11 +1,20 @@
 import "./global.css";
+import { KeyboardAvoidingView, Platform } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
 import RootNavigator from "./src/navigation/RootNavigator";
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <RootNavigator />
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </KeyboardAvoidingView>
+    </SafeAreaProvider>
   );
 }
