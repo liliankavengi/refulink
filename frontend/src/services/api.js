@@ -22,7 +22,8 @@ api.interceptors.request.use(async (config) => {
   }
   
   if (config.data && ["post", "put", "patch"].includes(config.method)) {
-    if (!(config.data instanceof FormData)) {
+    // Only encrypt if it's not FormData AND not already encrypted (prevents double-encryption on retries)
+    if (!(config.data instanceof FormData) && !config.data.encrypted_payload) {
       config.data = { encrypted_payload: encryptPayload(config.data) };
     }
   }
