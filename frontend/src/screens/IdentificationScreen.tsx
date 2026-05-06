@@ -11,12 +11,22 @@ import {
   Animated,
   Dimensions,
   StatusBar,
+<<<<<<< HEAD:frontend/src/screens/IdentificationScreen.tsx
   Alert,
+=======
+  ActivityIndicator,
+>>>>>>> ec8afc052509ccd940ddfcdba5de9afd1968205d:refu-link-frontend/src/screens/IdentificationScreen.tsx
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Circle } from "react-native-svg";
+<<<<<<< HEAD:frontend/src/screens/IdentificationScreen.tsx
 import { verifyRIN, registerIdentity } from "../services/authService";
+=======
+import { useAuth } from "../context/AuthContext";
+import Toast from "../components/Toast";
+import { handleApiError } from "../utils/errorHandler";
+>>>>>>> ec8afc052509ccd940ddfcdba5de9afd1968205d:refu-link-frontend/src/screens/IdentificationScreen.tsx
 
 const { width } = Dimensions.get('window');
 const ORANGE = "#FF5722";
@@ -29,8 +39,17 @@ export default function IdentificationScreen() {
   const [rin, setRin] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+<<<<<<< HEAD:frontend/src/screens/IdentificationScreen.tsx
   const [errorMsg, setErrorMsg] = useState("");
+=======
+  const [toast, setToast] = useState({ 
+    visible: false, 
+    message: "", 
+    type: "info" as "success" | "error" | "info" 
+  });
+>>>>>>> ec8afc052509ccd940ddfcdba5de9afd1968205d:refu-link-frontend/src/screens/IdentificationScreen.tsx
   const navigation = useNavigation<any>();
+  const { verifyRIN } = useAuth();
   
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -73,19 +92,57 @@ export default function IdentificationScreen() {
     ]).start();
   }, []);
 
+<<<<<<< HEAD:frontend/src/screens/IdentificationScreen.tsx
   const handleContinue = async () => {
     if (!rin.trim()) {
       // Shake animation for invalid input
+=======
+  const validateRIN = (rin: string): boolean => {
+    // Basic validation - adjust regex based on your RIN format
+    const rinRegex = /^[A-Z0-9]{5,15}$/;
+    return rinRegex.test(rin.trim().toUpperCase());
+  };
+
+  const handleContinue = async () => {
+    if (!rin.trim()) {
+      // Shake animation for empty input
+>>>>>>> ec8afc052509ccd940ddfcdba5de9afd1968205d:refu-link-frontend/src/screens/IdentificationScreen.tsx
       Animated.sequence([
         Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
         Animated.timing(shakeAnim, { toValue: -10, duration: 100, useNativeDriver: true }),
         Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
         Animated.timing(shakeAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
       ]).start();
+<<<<<<< HEAD:frontend/src/screens/IdentificationScreen.tsx
+=======
+      
+      setToast({
+        visible: true,
+        message: "Please enter your RIN number",
+        type: "error",
+      });
+      return;
+    }
+
+    if (!validateRIN(rin)) {
+      Animated.sequence([
+        Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: -10, duration: 100, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
+      ]).start();
+      
+      setToast({
+        visible: true,
+        message: "Invalid RIN format. Please check and try again.",
+        type: "error",
+      });
+>>>>>>> ec8afc052509ccd940ddfcdba5de9afd1968205d:refu-link-frontend/src/screens/IdentificationScreen.tsx
       return;
     }
 
     setIsLoading(true);
+<<<<<<< HEAD:frontend/src/screens/IdentificationScreen.tsx
     setErrorMsg("");
 
     try {
@@ -113,10 +170,23 @@ export default function IdentificationScreen() {
         Animated.timing(fadeAnim, {
           toValue: 0.9,
           duration: 200,
+=======
+    
+    try {
+      // Call the auth service to verify RIN
+      const response = await verifyRIN(rin.trim().toUpperCase());
+      
+      // Success pulse animation
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0.7,
+          duration: 150,
+>>>>>>> ec8afc052509ccd940ddfcdba5de9afd1968205d:refu-link-frontend/src/screens/IdentificationScreen.tsx
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
           toValue: 1,
+<<<<<<< HEAD:frontend/src/screens/IdentificationScreen.tsx
           duration: 200,
           useNativeDriver: true,
         }),
@@ -131,12 +201,59 @@ export default function IdentificationScreen() {
       setErrorMsg(msg);
     } finally {
       setIsLoading(false);
+=======
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setIsLoading(false);
+        
+        // Show success toast
+        setToast({
+          visible: true,
+          message: "Identity verified successfully!",
+          type: "success",
+        });
+        
+        // Navigate to next screen after short delay for animation
+        setTimeout(() => {
+          navigation.navigate("Biometric", { 
+            userData: response,
+            rin: rin.trim().toUpperCase(),
+          });
+        }, 500);
+      });
+    } catch (error) {
+      console.log("Full error:", JSON.stringify(error, null, 2));
+      setIsLoading(false);
+      
+      const appError = handleApiError(error);
+      
+      // Show error toast
+      setToast({
+        visible: true,
+        message: appError.message || "Verification failed. Please try again.",
+        type: "error",
+      });
+      
+      // Shake animation for error
+      Animated.sequence([
+        Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 8, duration: 50, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: -8, duration: 50, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 4, duration: 50, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
+      ]).start();
+>>>>>>> ec8afc052509ccd940ddfcdba5de9afd1968205d:refu-link-frontend/src/screens/IdentificationScreen.tsx
     }
   };
 
-  const formatRIN = (text: string) => {
-    // Auto-format RIN (example format)
-    return text.toUpperCase();
+  const formatRIN = (text: string): string => {
+    // Auto-format RIN - remove spaces and special characters
+    const cleaned = text.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    // Limit to 15 characters
+    return cleaned.slice(0, 15);
   };
 
   const progressWidth = progressAnim.interpolate({
@@ -144,9 +261,25 @@ export default function IdentificationScreen() {
     outputRange: ['0%', '5%'],
   });
 
+  const getRINStatus = () => {
+    if (!rin.trim()) return { text: 'Required', type: 'empty' };
+    if (validateRIN(rin)) return { text: 'Valid format', type: 'valid' };
+    return { text: 'Invalid format', type: 'invalid' };
+  };
+
+  const rinStatus = getRINStatus();
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={DARK_BG} />
+      
+      {/* Toast Notification */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast(prev => ({ ...prev, visible: false }))}
+      />
       
       {/* Background Gradient */}
       <ExpoLinearGradient
@@ -234,11 +367,21 @@ export default function IdentificationScreen() {
                 <Text style={styles.inputLabel}>RIN NUMBER</Text>
                 <View style={[
                   styles.inputStatus,
-                  rin.trim() ? styles.inputStatusValid : styles.inputStatusEmpty
+                  rinStatus.type === 'valid' && styles.inputStatusValid,
+                  rinStatus.type === 'invalid' && styles.inputStatusInvalid,
+                  rinStatus.type === 'empty' && styles.inputStatusEmpty,
                 ]}>
-                  <View style={styles.statusDot} />
-                  <Text style={styles.statusText}>
-                    {rin.trim() ? 'Valid format' : 'Required'}
+                  <View style={[
+                    styles.statusDot,
+                    rinStatus.type === 'valid' && styles.statusDotValid,
+                    rinStatus.type === 'invalid' && styles.statusDotInvalid,
+                  ]} />
+                  <Text style={[
+                    styles.statusText,
+                    rinStatus.type === 'valid' && styles.statusTextValid,
+                    rinStatus.type === 'invalid' && styles.statusTextInvalid,
+                  ]}>
+                    {rinStatus.text}
                   </Text>
                 </View>
               </View>
@@ -246,7 +389,8 @@ export default function IdentificationScreen() {
               <View style={[
                 styles.inputWrapper,
                 isFocused && styles.inputWrapperFocused,
-                rin.trim() && styles.inputWrapperFilled
+                rin.trim() && validateRIN(rin) && styles.inputWrapperFilled,
+                rin.trim() && !validateRIN(rin) && styles.inputWrapperError,
               ]}>
                 <Svg width={20} height={20} viewBox="0 0 24 24" style={styles.inputIcon}>
                   <Path
@@ -265,13 +409,14 @@ export default function IdentificationScreen() {
                   autoCapitalize="characters"
                   maxLength={15}
                   style={styles.input}
+                  editable={!isLoading}
                 />
                 
-                {rin.trim() && (
+                {rin.length > 0 && !isLoading && (
                   <Animated.View style={styles.clearButton}>
                     <Pressable onPress={() => setRin("")}>
                       <Svg width={20} height={20} viewBox="0 0 24 24">
-                        <Circle cx="12" cy="12" r="10" fill="#FF5722" opacity="0.2" />
+                        <Circle cx="12" cy="12" r="10" fill={ORANGE} opacity="0.2" />
                         <Path d="M15 9L9 15M9 9L15 15" stroke={ORANGE} strokeWidth="2" strokeLinecap="round" />
                       </Svg>
                     </Pressable>
@@ -324,15 +469,26 @@ export default function IdentificationScreen() {
                 style={({ pressed }) => [
                   styles.buttonWrapper,
                   pressed && styles.buttonPressed,
+<<<<<<< HEAD:frontend/src/screens/IdentificationScreen.tsx
                   isLoading && { opacity: 0.7 },
+=======
+                  isLoading && styles.buttonDisabled,
+>>>>>>> ec8afc052509ccd940ddfcdba5de9afd1968205d:refu-link-frontend/src/screens/IdentificationScreen.tsx
                 ]}
               >
                 <ExpoLinearGradient
-                  colors={rin.trim() ? [ORANGE, ORANGE_DARK] : ['#333', '#222']}
+                  colors={
+                    isLoading 
+                      ? ['#333', '#222']
+                      : rin.trim() && validateRIN(rin) 
+                        ? [ORANGE, ORANGE_DARK] 
+                        : ['#333', '#222']
+                  }
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.button}
                 >
+<<<<<<< HEAD:frontend/src/screens/IdentificationScreen.tsx
                   <Text style={[
                     styles.buttonText,
                     !rin.trim() && styles.buttonTextDisabled
@@ -340,12 +496,39 @@ export default function IdentificationScreen() {
                     {isLoading ? "Verifying..." : "Continue"}
                   </Text>
                   {!isLoading && <Text style={styles.buttonArrow}>→</Text>}
+=======
+                  {isLoading ? (
+                    <>
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                      <Text style={[styles.buttonText, styles.buttonTextDisabled]}>
+                        Verifying...
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={[
+                        styles.buttonText,
+                        (!rin.trim() || !validateRIN(rin)) && styles.buttonTextDisabled
+                      ]}>
+                        Continue
+                      </Text>
+                      <Text style={styles.buttonArrow}>→</Text>
+                    </>
+                  )}
+>>>>>>> ec8afc052509ccd940ddfcdba5de9afd1968205d:refu-link-frontend/src/screens/IdentificationScreen.tsx
                 </ExpoLinearGradient>
               </Pressable>
               
               <Pressable 
                 style={styles.helpButton}
-                onPress={() => {/* Show help modal */}}
+                onPress={() => {
+                  // Show help or navigate to help screen
+                  setToast({
+                    visible: true,
+                    message: "RIN is your unique Registration Identification Number",
+                    type: "info",
+                  });
+                }}
               >
                 <Text style={styles.helpText}>
                   Don't know your RIN? <Text style={styles.helpLink}>Get Help</Text>
@@ -537,16 +720,31 @@ const styles = StyleSheet.create({
   inputStatusValid: {
     opacity: 1,
   },
+  inputStatusInvalid: {
+    opacity: 1,
+  },
   statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: ORANGE,
   },
+  statusDotValid: {
+    backgroundColor: '#4CAF50',
+  },
+  statusDotInvalid: {
+    backgroundColor: '#FF5252',
+  },
   statusText: {
     color: '#999',
     fontSize: 12,
     fontWeight: "600",
+  },
+  statusTextValid: {
+    color: '#4CAF50',
+  },
+  statusTextInvalid: {
+    color: '#FF5252',
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -562,7 +760,10 @@ const styles = StyleSheet.create({
     borderColor: ORANGE,
   },
   inputWrapperFilled: {
-    borderColor: ORANGE + '50',
+    borderColor: '#4CAF50',
+  },
+  inputWrapperError: {
+    borderColor: '#FF5252',
   },
   inputIcon: {
     opacity: 0.7,
@@ -615,6 +816,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 10,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   button: {
     paddingVertical: 18,
