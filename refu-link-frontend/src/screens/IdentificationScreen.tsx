@@ -19,6 +19,7 @@ import Svg, { Path, Circle } from "react-native-svg";
 import { useAuth } from "../context/AuthContext";
 import Toast from "../components/Toast";
 import { handleApiError } from "../utils/errorHandler";
+import React from "react";
 
 const { width } = Dimensions.get('window');
 const ORANGE = "#FF5722";
