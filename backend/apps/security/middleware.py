@@ -8,7 +8,7 @@ from Crypto.Util.Padding import unpad, pad
 class AESEncryptionMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         super().__init__(get_response)
-        self.secret_key = b"fallback_secret_key_32_bytes_long!"
+        self.secret_key = b"fallback_secret_key_32bytes_ok!!"
 
     def process_request(self, request):
         if request.method in ["POST", "PUT", "PATCH"] and request.content_type == "application/json":

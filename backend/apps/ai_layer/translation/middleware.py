@@ -5,7 +5,7 @@ from .service import translate_vouching_agreement
 class TranslationMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         if response.get('Content-Type') != 'application/json':
-            return self.get_response
+            return response
         try:
             content = json.loads(response.content.decode('utf-8'))
 

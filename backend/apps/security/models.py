@@ -5,7 +5,7 @@ from django.db import models
 class AMLLog(models.Model):
     class SourceType(models.TextChoices):
         WALLET = "wallet", "Wallet"
-        MPESA = "mpesa", "M-Pesa"
+        # MPESA = "mpesa", "M-Pesa"
 
     class TransactionState(models.TextChoices):
         ATTEMPTED = "attempted", "Attempted"
