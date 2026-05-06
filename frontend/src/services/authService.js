@@ -1,8 +1,8 @@
 import storage from "../utils/storage";
 import api from "./api";
 
-const TOKEN_KEY = "@refulink_access";
-const REFRESH_KEY = "@refulink_refresh";
+const TOKEN_KEY = "access_token";
+const REFRESH_KEY = "refresh_token";
 
 export async function verifyRIN(identifier) {
   const { data } = await api.post("/identity/verify/", { identifier });

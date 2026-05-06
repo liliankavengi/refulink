@@ -343,6 +343,7 @@ class VouchStatusView(views.APIView):
 
 def _get_hashed_rin_for_user(user) -> str | None:
     """Retrieves the hashed_rin from the AlienID linked to this Django User."""
+    import hashlib
     from .models import AlienID
     username = user.username  # format: "alien_<id_number>"
     if not username.startswith("alien_"):
@@ -352,4 +353,6 @@ def _get_hashed_rin_for_user(user) -> str | None:
         alien = AlienID.objects.get(id_number=id_number, is_active=True)
         return alien.hashed_rin
     except AlienID.DoesNotExist:
-        return None
+        # If verified externally (e.g., Youverify), the record won't be in the mock DB.
+        # Compute the hash directly from the id_number.
+        return hashlib.sha256(id_number.encode()).hexdigest()

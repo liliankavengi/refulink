@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Platform,
 } from "react-native";
 import PropTypes from "prop-types";
 
@@ -173,7 +174,8 @@ export default function WalletDashboard({ navigation }) {
       const data = await getBalance();
       setBalance(data.kes_balance);
       setAddress(data.stellar_address);
-    } catch {
+    } catch (err) {
+      Alert.alert("Balance Error", String(err.message || err));
       setBalance(0);
     } finally {
       setLoadingBalance(false);
@@ -204,32 +206,51 @@ export default function WalletDashboard({ navigation }) {
 
   const handleAction = (key) => {
     if (key === "send") {
-      Alert.prompt("Send KES", "Destination Stellar address:", (dest) => {
+      if (Platform.OS === "web") {
+        const dest = window.prompt("Destination Stellar address:");
         if (!dest) return;
-        Alert.prompt("Amount (KES)", "Amount to send:", async (amt) => {
-          if (!amt) return;
-          try {
-            const result = await sendToken(dest.trim(), Number.parseFloat(amt));
-            Alert.alert("Sent", `TX hash:\n${result.txHash}`);
+        const amt = window.prompt("Amount to send (KES):");
+        if (!amt) return;
+        sendToken(dest.trim(), Number.parseFloat(amt))
+          .then(result => {
+            window.alert(`Sent! TX hash:\n${result.txHash}`);
             onRefresh();
-          } catch (err) {
-            Alert.alert("Transfer failed", err.message);
-          }
+          })
+          .catch(err => window.alert(`Transfer failed: ${err.message || err}`));
+      } else {
+        Alert.prompt("Send KES", "Destination Stellar address:", (dest) => {
+          if (!dest) return;
+          Alert.prompt("Amount (KES)", "Amount to send:", async (amt) => {
+            if (!amt) return;
+            try {
+              const result = await sendToken(dest.trim(), Number.parseFloat(amt));
+              Alert.alert("Sent", `TX hash:\n${result.txHash}`);
+              onRefresh();
+            } catch (err) {
+              Alert.alert("Transfer failed", err.message);
+            }
+          }, "plain-text");
         }, "plain-text");
-      }, "plain-text");
+      }
       return;
     }
     if (key === "receive") {
-      Alert.alert("Receive", `Your Stellar address:\n\n${address}`);
+      if (Platform.OS === "web") {
+        window.alert(`Receive\n\nYour Stellar address:\n\n${address}`);
+      } else {
+        Alert.alert("Receive", `Your Stellar address:\n\n${address}`);
+      }
       return;
     }
     if (key === "deposit") {
       getMpesaDepositDetails().then(data => {
-        Alert.alert(
-          "Deposit via M-Pesa",
-          `Send money to Paybill ${data.paybill}\nAccount: ${data.account_reference}\n\nBalance will update automatically.`,
-          [{ text: "OK" }]
-        );
+        const msg = `Send money to Paybill ${data.paybill_number}\nAccount: ${data.account_number}\n\nBalance will update automatically.`;
+        if (Platform.OS === "web") {
+          window.alert(`Deposit via M-Pesa\n\n${msg}`);
+        } else {
+          Alert.alert("Deposit via M-Pesa", msg, [{ text: "OK" }]);
+        }
+        
         // Start polling for balance update
         let attempts = 0;
         const currentBalance = balance;
@@ -240,16 +261,27 @@ export default function WalletDashboard({ navigation }) {
             if (kes_balance > currentBalance) {
               clearInterval(interval);
               onRefresh();
-              Alert.alert("Deposit Received!", `Your balance is now KES ${Number(kes_balance).toFixed(2)}`);
+              if (Platform.OS === "web") {
+                window.alert(`Deposit Received! Your balance is now KES ${Number(kes_balance).toFixed(2)}`);
+              } else {
+                Alert.alert("Deposit Received!", `Your balance is now KES ${Number(kes_balance).toFixed(2)}`);
+              }
             }
           } catch (e) {}
           if (attempts > 30) clearInterval(interval); // Poll for ~2.5 mins
         }, 5000);
-      }).catch(() => Alert.alert("Error", "Could not fetch deposit info"));
+      }).catch(() => {
+        if (Platform.OS === "web") window.alert("Error: Could not fetch deposit info");
+        else Alert.alert("Error", "Could not fetch deposit info");
+      });
       return;
     }
     if (key === "withdraw") {
-      Alert.alert("Withdraw", "M-Pesa withdrawal coming soon.");
+      if (Platform.OS === "web") {
+        window.alert("Withdraw\n\nM-Pesa withdrawal coming soon.");
+      } else {
+        Alert.alert("Withdraw", "M-Pesa withdrawal coming soon.");
+      }
     }
   };
 

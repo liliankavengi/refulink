@@ -35,3 +35,4 @@ sqlparse==0.5.5
 stellar-sdk>=9.0.0
 tzdata==2026.1
 urllib3==2.6.3
+python-dotenv==1.0.1

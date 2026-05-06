@@ -24,7 +24,11 @@ def verify_alien_id(identifier: str, last_name: str = None) -> dict:
         # --- FIX 2: Pass the last_name to the mock helper ---
         return _verify_via_mock(identifier, last_name)
 
-    return _verify_via_api(api_url, api_token, identifier)
+    try:
+        return _verify_via_api(api_url, api_token, identifier)
+    except AlienCheckError as e:
+        logger.warning(f"Youverify API failed ({e}). Falling back to mock DB.")
+        return _verify_via_mock(identifier, last_name)
 
 
 def _verify_via_api(api_url: str, api_token: str, identifier: str) -> dict:

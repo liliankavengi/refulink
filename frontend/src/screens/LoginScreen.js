@@ -28,18 +28,37 @@ export default function LoginScreen({ navigation }) {
     try {
       const result = await verifyRIN(identifier.trim());
       if (!result.verified) { Alert.alert("", t("verifiedFail")); return; }
+      
+      const fullName = result.user_info?.full_name || "User";
+
       try {
         const identity = await registerIdentity();
         if (identity.stellar_private_key) {
-          Alert.alert(
-            t("saveKey"),
-            `${t("privateKeyWarning")}\n\n${identity.stellar_private_key}`,
-            [{ text: "OK", onPress: () => navigation.replace("Main") }]
-          );
+          const msg = `${t("privateKeyWarning")}\n\n${identity.stellar_private_key}`;
+          if (Platform.OS === "web") {
+            window.alert(`Welcome, ${fullName}\n\n${msg}`);
+            navigation.replace("Main");
+          } else {
+            Alert.alert(
+              "Welcome, " + fullName,
+              msg,
+              [{ text: "OK", onPress: () => navigation.replace("Main") }]
+            );
+          }
           return;
         }
-      } catch { /* already registered */ }
-      navigation.replace("Main");
+      } catch { 
+        // Already registered
+      }
+      
+      if (Platform.OS === "web") {
+        window.alert(`Welcome! Successfully verified as ${fullName}.`);
+        navigation.replace("Main");
+      } else {
+        Alert.alert("Welcome", `Successfully verified as ${fullName}.`, [
+          { text: "OK", onPress: () => navigation.replace("Main") }
+        ]);
+      }
     } catch {
       Alert.alert("", t("networkError"));
     } finally {
