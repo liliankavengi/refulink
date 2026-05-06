@@ -66,7 +66,7 @@ export const verifyRIN = async (identifier: string): Promise<VerifyRINResponse> 
 
   return data;
 };
-
+ 
 /**
  * Registers a Stellar identity for the authenticated user.
  * If no key is supplied, the server generates one and returns it ONCE.
