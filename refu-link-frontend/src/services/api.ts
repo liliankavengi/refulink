@@ -46,7 +46,7 @@ api.interceptors.response.use(
         const refresh = await AsyncStorage.getItem('refresh_token');
         
         if (!refresh) {
-          throw new Error('No refresh token available');
+          return Promise.reject(error);
         }
 
         const { data } = await axios.post<TokenResponse>(
