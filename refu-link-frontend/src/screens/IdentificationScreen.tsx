@@ -10,15 +10,11 @@ import {
   ScrollView,
   Animated,
   Dimensions,
-  StatusBar,
-  ActivityIndicator,
+  StatusBar
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Circle } from "react-native-svg";
-import { useAuth } from "../context/AuthContext";
-import Toast from "../components/Toast";
-import { handleApiError } from "../utils/errorHandler";
 import React from "react";
 
 const { width } = Dimensions.get('window');
@@ -31,14 +27,7 @@ const CARD_BG = "#16213E";
 export default function IdentificationScreen() {
   const [rin, setRin] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [toast, setToast] = useState({ 
-    visible: false, 
-    message: "", 
-    type: "info" as "success" | "error" | "info" 
-  });
   const navigation = useNavigation<any>();
-  const { verifyRIN } = useAuth();
   
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -81,112 +70,37 @@ export default function IdentificationScreen() {
     ]).start();
   }, []);
 
-  const validateRIN = (rin: string): boolean => {
-    // Basic validation - adjust regex based on your RIN format
-    const rinRegex = /^[A-Z0-9]{5,15}$/;
-    return rinRegex.test(rin.trim().toUpperCase());
-  };
-
-  const handleContinue = async () => {
-    if (!rin.trim()) {
-      // Shake animation for empty input
-      Animated.sequence([
-        Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: -10, duration: 100, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
-      ]).start();
-      
-      setToast({
-        visible: true,
-        message: "Please enter your RIN number",
-        type: "error",
-      });
-      return;
-    }
-
-    if (!validateRIN(rin)) {
-      Animated.sequence([
-        Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: -10, duration: 100, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
-      ]).start();
-      
-      setToast({
-        visible: true,
-        message: "Invalid RIN format. Please check and try again.",
-        type: "error",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      // Call the auth service to verify RIN
-      const response = await verifyRIN(rin.trim().toUpperCase());
-      
-      // Success pulse animation
+  const handleContinue = () => {
+    if (rin.trim()) {
+      // Success animation
       Animated.sequence([
         Animated.timing(fadeAnim, {
-          toValue: 0.7,
-          duration: 150,
+          toValue: 0.9,
+          duration: 200,
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 150,
+          duration: 200,
           useNativeDriver: true,
         }),
       ]).start(() => {
-        setIsLoading(false);
-        
-        // Show success toast
-        setToast({
-          visible: true,
-          message: "Identity verified successfully!",
-          type: "success",
-        });
-        
-        // Navigate to next screen after short delay for animation
-        setTimeout(() => {
-          navigation.navigate("Biometric", { 
-            userData: response,
-            rin: rin.trim().toUpperCase(),
-          });
-        }, 500);
+        navigation.navigate("Biometric");
       });
-    } catch (error) {
-      console.log("Full error:", JSON.stringify(error, null, 2));
-      setIsLoading(false);
-      
-      const appError = handleApiError(error);
-      
-      // Show error toast
-      setToast({
-        visible: true,
-        message: appError.message || "Verification failed. Please try again.",
-        type: "error",
-      });
-      
-      // Shake animation for error
+    } else {
+      // Shake animation for invalid input
       Animated.sequence([
-        Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 8, duration: 50, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: -8, duration: 50, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 4, duration: 50, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: -10, duration: 100, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
       ]).start();
     }
   };
 
-  const formatRIN = (text: string): string => {
-    // Auto-format RIN - remove spaces and special characters
-    const cleaned = text.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    // Limit to 15 characters
-    return cleaned.slice(0, 15);
+  const formatRIN = (text: string) => {
+    // Auto-format RIN (example format)
+    return text.toUpperCase();
   };
 
   const progressWidth = progressAnim.interpolate({
@@ -194,25 +108,9 @@ export default function IdentificationScreen() {
     outputRange: ['0%', '5%'],
   });
 
-  const getRINStatus = () => {
-    if (!rin.trim()) return { text: 'Required', type: 'empty' };
-    if (validateRIN(rin)) return { text: 'Valid format', type: 'valid' };
-    return { text: 'Invalid format', type: 'invalid' };
-  };
-
-  const rinStatus = getRINStatus();
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={DARK_BG} />
-      
-      {/* Toast Notification */}
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onHide={() => setToast(prev => ({ ...prev, visible: false }))}
-      />
       
       {/* Background Gradient */}
       <ExpoLinearGradient
@@ -300,21 +198,11 @@ export default function IdentificationScreen() {
                 <Text style={styles.inputLabel}>RIN NUMBER</Text>
                 <View style={[
                   styles.inputStatus,
-                  rinStatus.type === 'valid' && styles.inputStatusValid,
-                  rinStatus.type === 'invalid' && styles.inputStatusInvalid,
-                  rinStatus.type === 'empty' && styles.inputStatusEmpty,
+                  rin.trim() ? styles.inputStatusValid : styles.inputStatusEmpty
                 ]}>
-                  <View style={[
-                    styles.statusDot,
-                    rinStatus.type === 'valid' && styles.statusDotValid,
-                    rinStatus.type === 'invalid' && styles.statusDotInvalid,
-                  ]} />
-                  <Text style={[
-                    styles.statusText,
-                    rinStatus.type === 'valid' && styles.statusTextValid,
-                    rinStatus.type === 'invalid' && styles.statusTextInvalid,
-                  ]}>
-                    {rinStatus.text}
+                  <View style={styles.statusDot} />
+                  <Text style={styles.statusText}>
+                    {rin.trim() ? 'Valid format' : 'Required'}
                   </Text>
                 </View>
               </View>
@@ -322,8 +210,7 @@ export default function IdentificationScreen() {
               <View style={[
                 styles.inputWrapper,
                 isFocused && styles.inputWrapperFocused,
-                rin.trim() && validateRIN(rin) && styles.inputWrapperFilled,
-                rin.trim() && !validateRIN(rin) && styles.inputWrapperError,
+                rin.trim() && styles.inputWrapperFilled
               ]}>
                 <Svg width={20} height={20} viewBox="0 0 24 24" style={styles.inputIcon}>
                   <Path
@@ -342,14 +229,13 @@ export default function IdentificationScreen() {
                   autoCapitalize="characters"
                   maxLength={15}
                   style={styles.input}
-                  editable={!isLoading}
                 />
                 
-                {rin.length > 0 && !isLoading && (
+                {rin.trim() && (
                   <Animated.View style={styles.clearButton}>
                     <Pressable onPress={() => setRin("")}>
                       <Svg width={20} height={20} viewBox="0 0 24 24">
-                        <Circle cx="12" cy="12" r="10" fill={ORANGE} opacity="0.2" />
+                        <Circle cx="12" cy="12" r="10" fill="#FF5722" opacity="0.2" />
                         <Path d="M15 9L9 15M9 9L15 15" stroke={ORANGE} strokeWidth="2" strokeLinecap="round" />
                       </Svg>
                     </Pressable>
@@ -391,56 +277,30 @@ export default function IdentificationScreen() {
             <View style={styles.buttonContainer}>
               <Pressable
                 onPress={handleContinue}
-                disabled={isLoading}
                 style={({ pressed }) => [
                   styles.buttonWrapper,
                   pressed && styles.buttonPressed,
-                  isLoading && styles.buttonDisabled,
                 ]}
               >
                 <ExpoLinearGradient
-                  colors={
-                    isLoading 
-                      ? ['#333', '#222']
-                      : rin.trim() && validateRIN(rin) 
-                        ? [ORANGE, ORANGE_DARK] 
-                        : ['#333', '#222']
-                  }
+                  colors={rin.trim() ? [ORANGE, ORANGE_DARK] : ['#333', '#222']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.button}
                 >
-                  {isLoading ? (
-                    <>
-                      <ActivityIndicator color="#FFFFFF" size="small" />
-                      <Text style={[styles.buttonText, styles.buttonTextDisabled]}>
-                        Verifying...
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={[
-                        styles.buttonText,
-                        (!rin.trim() || !validateRIN(rin)) && styles.buttonTextDisabled
-                      ]}>
-                        Continue
-                      </Text>
-                      <Text style={styles.buttonArrow}>→</Text>
-                    </>
-                  )}
+                  <Text style={[
+                    styles.buttonText,
+                    !rin.trim() && styles.buttonTextDisabled
+                  ]}>
+                    Continue
+                  </Text>
+                  <Text style={styles.buttonArrow}>→</Text>
                 </ExpoLinearGradient>
               </Pressable>
               
               <Pressable 
                 style={styles.helpButton}
-                onPress={() => {
-                  // Show help or navigate to help screen
-                  setToast({
-                    visible: true,
-                    message: "RIN is your unique Registration Identification Number",
-                    type: "info",
-                  });
-                }}
+                onPress={() => {/* Show help modal */}}
               >
                 <Text style={styles.helpText}>
                   Don't know your RIN? <Text style={styles.helpLink}>Get Help</Text>
@@ -632,31 +492,16 @@ const styles = StyleSheet.create({
   inputStatusValid: {
     opacity: 1,
   },
-  inputStatusInvalid: {
-    opacity: 1,
-  },
   statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: ORANGE,
   },
-  statusDotValid: {
-    backgroundColor: '#4CAF50',
-  },
-  statusDotInvalid: {
-    backgroundColor: '#FF5252',
-  },
   statusText: {
     color: '#999',
     fontSize: 12,
     fontWeight: "600",
-  },
-  statusTextValid: {
-    color: '#4CAF50',
-  },
-  statusTextInvalid: {
-    color: '#FF5252',
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -672,10 +517,7 @@ const styles = StyleSheet.create({
     borderColor: ORANGE,
   },
   inputWrapperFilled: {
-    borderColor: '#4CAF50',
-  },
-  inputWrapperError: {
-    borderColor: '#FF5252',
+    borderColor: ORANGE + '50',
   },
   inputIcon: {
     opacity: 0.7,
@@ -728,9 +570,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 10,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
   },
   button: {
     paddingVertical: 18,

@@ -15,6 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import Svg, { Circle, Path, Defs, LinearGradient, Stop } from "react-native-svg";
 import { cssInterop } from "nativewind";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
+import React from "react";
 
 // Wire up NativeWind interop for core components
 cssInterop(View, { className: "style" });

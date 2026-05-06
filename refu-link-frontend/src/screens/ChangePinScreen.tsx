@@ -13,6 +13,7 @@ import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import React from "react";
 
 const { width } = Dimensions.get('window');
 const ORANGE = "#FF5722";

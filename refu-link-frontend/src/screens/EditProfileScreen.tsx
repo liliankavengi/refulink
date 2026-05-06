@@ -88,6 +88,7 @@ function IconShield({ color = "#666", size = 16 }) {
 
 // Need Polyline import
 import { Polyline } from "react-native-svg";
+import React from "react";
 
 // ── Component ─────────────────────────────────────────────────────────────────
 

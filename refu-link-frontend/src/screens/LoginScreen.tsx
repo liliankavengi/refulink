@@ -15,6 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Circle, Rect, Line, Defs, LinearGradient, Stop } from "react-native-svg";
 import * as LocalAuthentication from 'expo-local-authentication';
+import React from "react";
 
 const ORANGE = "#FF5722";
 const ORANGE_LIGHT = "#FF8A65";

@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Circle, Line, Rect, Polyline } from "react-native-svg";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import React from "react";
 
 const { width, height } = Dimensions.get('window');
 const ORANGE = "#FF5722";

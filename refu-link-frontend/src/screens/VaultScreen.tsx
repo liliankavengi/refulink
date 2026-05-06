@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Circle, Rect, Line, Polyline, Defs, LinearGradient, Stop } from "react-native-svg";
 import Slider from "@react-native-community/slider";
+import React from "react";
 
 const { width } = Dimensions.get('window');
 const ORANGE = "#FF5722";

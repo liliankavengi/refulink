@@ -13,6 +13,7 @@ import {
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Circle, Line, Polyline } from "react-native-svg";
+import React from "react";
 
 const { width, height } = Dimensions.get('window');
 const ORANGE = "#FF5722";
