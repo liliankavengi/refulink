@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     'apps.identity',
     'apps.wallet',
     'apps.stellar',
-    'apps.mpesa',
+    # 'apps.mpesa',
     'apps.ai_layer',
     'apps.trust',
     'apps.security',
@@ -41,6 +41,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'apps.ai_layer.translation.middleware.TranslationMiddleware',
+    # 'apps.security.middleware.AESEncryptionMiddleware',  # Disabled: using plain JSON for now
 ]
 
 ROOT_URLCONF = 'config.urls'

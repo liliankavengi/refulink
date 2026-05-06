@@ -4,7 +4,6 @@ Falls back to the local mock database if ALIEN_CHECK_API_URL is not configured.
 """
 import logging
 import requests
-from requests.structures import CaseInsensitiveDict
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -25,52 +24,138 @@ def verify_alien_id(identifier: str, last_name: str = None) -> dict:
         # --- FIX 2: Pass the last_name to the mock helper ---
         return _verify_via_mock(identifier, last_name)
 
-    return _verify_via_api(api_url, api_token, identifier)
+    try:
+        return _verify_via_api(api_url, api_token, identifier)
+    except AlienCheckError as e:
+        logger.warning(f"Youverify API failed ({e}). Falling back to mock DB.")
+        return _verify_via_mock(identifier, last_name)
 
 
 def _verify_via_api(api_url: str, api_token: str, identifier: str) -> dict:
-    """Call the live Alien Check endpoint (unchanged)."""
-    headers = CaseInsensitiveDict()
-    headers["Accept"] = "application/json"
-    headers["Authorization"] = f"Bearer {api_token}"
-    headers["Content-Type"] = "application/json"
+    """
+    Call the Youverify Alien ID verification endpoint.
 
-    payload = {
-        "search_type": "ALIENCHECK",
-        "identifier": identifier,
-        "consent": "1",
-        "consent_collected_by": "",
+    Endpoint : POST https://api.youverify.co/v2/api/identity/ke/alien-id
+    Header   : token: <api_token>
+    Body     : {"id": "<identifier>", "isSubjectConsent": true}
+
+    Sandbox test IDs:
+        111111111  → success (status: "found")
+        000000000  → failure (404 ResourceNotFoundError)
+    """
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "token": api_token,
     }
 
+    payload = {
+        "id": identifier,
+        "isSubjectConsent": True,
+    }
+
+    # ── 1. Make the request ──────────────────────────────────────────────
     try:
         resp = requests.post(api_url, headers=headers, json=payload, timeout=30)
+    except requests.ConnectionError as exc:
+        logger.error("Youverify API connection failed: %s", exc)
+        raise AlienCheckError("Cannot reach verification service. Please try again.")
+    except requests.Timeout:
+        logger.error("Youverify API request timed out for ID: %s", identifier)
+        raise AlienCheckError("Verification service timed out. Please try again.")
     except requests.RequestException as exc:
-        logger.error("Alien Check API request failed: %s", exc)
+        logger.error("Youverify API request error: %s", exc)
         raise AlienCheckError(f"Network error: {exc}")
 
-    if resp.status_code != 200:
-        raise AlienCheckError(f"Verification service returned status {resp.status_code}")
-
+    # ── 2. Parse JSON body ───────────────────────────────────────────────
     try:
         data = resp.json()
     except ValueError:
-        raise AlienCheckError("Verification service returned invalid JSON")
+        logger.error(
+            "Youverify returned non-JSON (HTTP %s): %s",
+            resp.status_code, resp.text[:200],
+        )
+        raise AlienCheckError("Verification service returned an invalid response.")
 
-    identity = data.get("data", data)
-    verified = bool(identity.get("valid", identity.get("identity_verified", False)))
+    # ── 3. Handle HTTP-level errors ──────────────────────────────────────
 
-    full_name = " ".join(
+    # 401 / 403 — bad or expired API token
+    if resp.status_code in (401, 403):
+        logger.error(
+            "Youverify auth failed (HTTP %s): %s",
+            resp.status_code, data.get("message", ""),
+        )
+        raise AlienCheckError("Verification service authentication failed.")
+
+    # 404 — ID not found in the registry (ResourceNotFoundError)
+    if resp.status_code == 404:
+        logger.info("Youverify 404 — Alien ID not found: %s", identifier)
+        return {
+            "verified": False,
+            "full_name": None,
+            "id_number": identifier,
+            "raw_response": data,
+        }
+
+    # 429 — rate limited
+    if resp.status_code == 429:
+        logger.warning("Youverify rate limit hit")
+        raise AlienCheckError("Too many requests. Please wait and try again.")
+
+    # Any other non-200 status
+    if resp.status_code != 200:
+        logger.error(
+            "Youverify unexpected HTTP %s: %s",
+            resp.status_code, data.get("message", ""),
+        )
+        raise AlienCheckError(
+            f"Verification service error (HTTP {resp.status_code})."
+        )
+
+    # ── 4. Handle JSON-level success/failure ─────────────────────────────
+
+    # API returned 200 but success=false (shouldn't happen often, but safe)
+    if not data.get("success", False):
+        message = data.get("message", "Verification failed")
+        logger.warning("Youverify 200 but success=false: %s", message)
+        return {
+            "verified": False,
+            "full_name": None,
+            "id_number": identifier,
+            "raw_response": data,
+        }
+
+    # ── 5. Parse successful verification ─────────────────────────────────
+    identity = data.get("data", {})
+    status_value = identity.get("status", "")
+    verified = status_value == "found"
+
+    # Build full name: prefer fullName, then compose from parts
+    full_name = identity.get("fullName") or " ".join(
         filter(None, [
-            identity.get("first_name", ""),
-            identity.get("middle_name", ""),
-            identity.get("last_name", identity.get("surname", "")),
+            identity.get("firstName", ""),
+            identity.get("middleName", ""),
+            identity.get("lastName", ""),
         ])
-    ) or identity.get("name", None)
+    ) or None
+
+    if verified:
+        logger.info(
+            "Youverify VERIFIED — ID: %s, name: %s, allValidationPassed: %s",
+            identity.get("idNumber", identifier),
+            full_name,
+            identity.get("allValidationPassed"),
+        )
+    else:
+        logger.info(
+            "Youverify NOT verified — ID: %s, status: %s",
+            identifier, status_value,
+        )
 
     return {
         "verified": verified,
         "full_name": full_name,
-        "id_number": identifier,
+        "id_number": identity.get("idNumber", identifier),
         "raw_response": data,
     }
 
