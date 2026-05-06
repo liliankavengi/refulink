@@ -157,6 +157,7 @@ export default function IdentificationScreen() {
         }, 500);
       });
     } catch (error) {
+      console.log("Full error:", JSON.stringify(error, null, 2));
       setIsLoading(false);
       
       const appError = handleApiError(error);

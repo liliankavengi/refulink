@@ -7,7 +7,7 @@ interface TokenResponse {
   refresh: string;
 }
 
-const BASE_URL: string = process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+const BASE_URL: string = process.env.EXPO_PUBLIC_API_URL || 'https://symmetrical-trout-7wv7pgvjwvj3r4rg-8000.app.github.dev/api';
 
 const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,

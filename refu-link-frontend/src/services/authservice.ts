@@ -17,6 +17,7 @@ interface RegisterIdentityResponse {
 }
 
 export async function verifyRIN(identifier: string): Promise<VerifyRINResponse> {
+  console.log("Sending RIN:", identifier);
   const { data } = await api.post<VerifyRINResponse>("/identity/verify-rin/", { identifier });
   if (data.tokens) {
     await storage.setItem(TOKEN_KEY, data.tokens.access);
