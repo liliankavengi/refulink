@@ -265,26 +265,6 @@ export default function AgentDepositScreen() {
             styles.content,
             { opacity: fadeAnim }
           ]}>
-            {/* Info Banner */}
-            <View style={styles.infoBanner}>
-              <ExpoLinearGradient
-                colors={[CARD_BG, '#1E2A4A']}
-                style={styles.infoGradient}
-              >
-                <View style={styles.infoContent}>
-                  <View style={styles.infoIcon}>
-                    <IconShield size={18} />
-                  </View>
-                  <View style={styles.infoText}>
-                    <Text style={styles.infoTitle}>Authorized Agents</Text>
-                    <Text style={styles.infoDescription}>
-                      All agents are verified and authorized to process deposits.
-                    </Text>
-                  </View>
-                </View>
-              </ExpoLinearGradient>
-            </View>
-
             {/* Agent List */}
             <View style={styles.agentList}>
               {agents.map((agent, index) => (
@@ -382,6 +362,7 @@ export default function AgentDepositScreen() {
                 </Animated.View>
               ))}
             </View>
+            
 
             {/* Safety Tips */}
             <View style={styles.tipsCard}>
@@ -411,6 +392,28 @@ export default function AgentDepositScreen() {
                 </Text>
               </View>
             </View>
+
+            
+            {/* Info Banner */}
+            <View style={styles.infoBanner}>
+              <ExpoLinearGradient
+                colors={[CARD_BG, '#1E2A4A']}
+                style={styles.infoGradient}
+              >
+                <View style={styles.infoContent}>
+                  <View style={styles.infoIcon}>
+                    <IconShield size={18} />
+                  </View>
+                  <View style={styles.infoText}>
+                    <Text style={styles.infoTitle}>Authorized Agents</Text>
+                    <Text style={styles.infoDescription}>
+                      All agents are verified and authorized to process deposits.
+                    </Text>
+                  </View>
+                </View>
+              </ExpoLinearGradient>
+            </View>
+
           </Animated.View>
         </ScrollView>
       </SafeAreaView>
