@@ -59,18 +59,37 @@ function IconLock({ color = ORANGE, size = 20 }) {
   );
 }
 
-function IconFingerprint({ color = ORANGE, size = 20 }) {
+function IconFingerprint({ color = "#FF6B00", size = 24 }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
-      <Path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
-      <Path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
-      <Path d="M2 12a10 10 0 0 1 18-6" />
-      <Path d="M2 17c1 .5 2.23 1 3.5 1" />
-      <Path d="M20 12c-.14 3-.8 5.4-2 7" />
-      <Path d="M4.31 15.71A10 10 0 0 1 2 12" />
-      <Path d="M6.5 10a6 6 0 0 1 11.5 2c0 1.5-.29 4-.29 4" />
-      <Path d="M8 10.4A5 5 0 0 1 12 8" />
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* Main fingerprint swirl */}
+      <Path d="M12 4a8 8 0 0 0-8 8c0 1.43.38 2.77 1.04 3.93" />
+      <Path d="M12 4a8 8 0 0 1 8 8c0 2.1-.8 4.02-2.1 5.45" />
+      
+      {/* Inner loops */}
+      <Path d="M8.5 9.5a3.5 3.5 0 0 1 7 0" />
+      <Path d="M7.2 13.8a5 5 0 0 1 9.6 0" />
+      
+      {/* Middle arcs */}
+      <Path d="M9.5 16.5a3.2 3.2 0 0 1 5 0" />
+      
+      {/* Outer fingerprint ridges */}
+      <Path d="M5 12a7 7 0 0 1 14 0" />
+      <Path d="M4.2 16.5c.8-1.1 2-2 3.5-2.5" />
+      <Path d="M19.8 16.5c-.8-1.1-2-2-3.5-2.5" />
+      
+      {/* Bottom base curves */}
+      <Path d="M6.5 19.5c1-.8 2.3-1.5 4-1.5s3 .7 4 1.5" />
+      <Path d="M12 20v-1" />
     </Svg>
   );
 }

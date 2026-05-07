@@ -142,8 +142,6 @@ function IconAvatar({ size = 80 }) {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type Tab = "home" | "scan" | "history" | "profile";
-
 type ProfileAction = {
   id: string;
   label: string;
@@ -154,7 +152,6 @@ type ProfileAction = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ProfileScreen() {
-  const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigation = useNavigation<any>();
 
@@ -242,12 +239,6 @@ export default function ProfileScreen() {
     },
   ];
 
-  const navTabs: { key: Tab; Icon: React.FC<{ color?: string; size?: number }>; route?: string }[] = [
-    { key: "home", Icon: IconHome, route: "Dashboard" },
-    { key: "scan", Icon: IconScan, route: "Scan" },
-    { key: "history", Icon: IconHistory, route: "History" },
-    { key: "profile", Icon: IconUser },
-  ];
 
   return (
     <View style={styles.container}>
@@ -404,39 +395,6 @@ export default function ProfileScreen() {
           {/* App Version */}
           <Text style={styles.versionText}>REF-M-LINK v1.0.0</Text>
         </ScrollView>
-
-        {/* Bottom Navigation */}
-        <Animated.View style={[
-          styles.bottomNav,
-          { opacity: fadeAnim }
-        ]}>
-          <ExpoLinearGradient
-            colors={[DARK_BG + 'F0', CARD_BG + 'F0']}
-            style={styles.bottomNavGradient}
-          >
-            {navTabs.map(({ key, Icon, route }) => (
-              <Pressable
-                key={key}
-                onPress={() => {
-                  setActiveTab(key);
-                  if (route) navigation.navigate(route);
-                }}
-                style={styles.navItem}
-              >
-                <View style={[
-                  styles.navIconContainer,
-                  activeTab === key && styles.navIconActive
-                ]}>
-                  <Icon 
-                    color={activeTab === key ? ORANGE : '#666'} 
-                    size={22} 
-                  />
-                </View>
-                {activeTab === key && <View style={styles.navIndicator} />}
-              </Pressable>
-            ))}
-          </ExpoLinearGradient>
-        </Animated.View>
       </SafeAreaView>
 
       {/* Logout Confirmation Modal */}
@@ -883,7 +841,7 @@ const styles = StyleSheet.create({
   },
   modalDescription: {
     color: '#999',
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
     lineHeight: 20,
   },

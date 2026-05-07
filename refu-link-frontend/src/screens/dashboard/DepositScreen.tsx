@@ -38,15 +38,15 @@ function ChevronRight({ color = ORANGE, size = 24 }) {
   );
 }
 
-// Smartphone icon (M-PESA)
-function IconSmartphone({ color = ORANGE, size = 32 }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-      <Line x1="12" y1="18" x2="12.01" y2="18" />
-    </Svg>
-  );
-}
+// // Smartphone icon (M-PESA)
+// function IconSmartphone({ color = ORANGE, size = 32 }) {
+//   return (
+//     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+//       <Rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+//       <Line x1="12" y1="18" x2="12.01" y2="18" />
+//     </Svg>
+//   );
+// }
 
 // Users icon (Agent Deposit)
 function IconUsers({ color = ORANGE, size = 32 }) {
@@ -97,15 +97,15 @@ export default function DepositOptionsScreen() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   const depositOptions: DepositOption[] = [
-    {
-      id: "mpesa",
-      title: "M-PESA",
-      subtitle: "Deposit via Paybill or Till Number",
-      icon: IconSmartphone,
-      route: "MpesaDeposit",
-      popular: true,
-      badge: "INSTANT",
-    },
+    // {
+    //   id: "mpesa",
+    //   title: "M-PESA",
+    //   subtitle: "Deposit via Paybill or Till Number",
+    //   icon: IconSmartphone,
+    //   route: "MpesaDeposit",
+    //   popular: true,
+    //   badge: "INSTANT",
+    // },
     {
       id: "agent",
       title: "AGENT DEPOSIT",

@@ -3,10 +3,11 @@ import { View, Text, StyleSheet, Dimensions, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Circle, Line, Polyline, Rect } from "react-native-svg";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
-import DashboardScreen from "../screens/DashboardScreen";
-import ScanScreen from "../screens/ScanScreen";
-import HistoryScreen from "../screens/HistoryScreen";
-import ProfileScreen from "../screens/ProfileScreen";
+import DashboardScreen from "../screens/dashboard/DashboardScreen";
+import ScanScreen from "../screens/scan/ScanScreen";
+import HistoryScreen from "../screens/history/HistoryScreen";
+import ProfileScreen from "../screens/profile/ProfileScreen";
+import React from "react";
 
 // ── Responsive Helpers ────────────────────────────────────────────────────────
 
